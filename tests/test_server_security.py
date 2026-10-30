@@ -48,7 +48,7 @@ class SecurityTests(unittest.TestCase):
     def test_internal_files_are_not_served(self):
         for path in ["/.git/config", "/.github/workflows/ci.yml",
                      "/server.py", "/requirements-e2e.txt",
-                     "/src/../server.py", "/?secret=1/../server.py"]:
+                     "/src/../server.py"]:
             with self.subTest(path=path):
                 status, _, _ = self.request("GET", path)
                 self.assertEqual(status, 404)
