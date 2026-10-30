@@ -1,0 +1,9 @@
+assets/demo.wav
+assets/demo.mid
+__pycache__/
+*.pyc
+node_modules/
+*.mp4
+*.webm
+*.log
+.DS_Store
