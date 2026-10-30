@@ -23,4 +23,28 @@ jobs:
       - name: Unit tests
         run: npm test
       - name: Python syntax
-        run: python -m py_compile server.py generate_demo.py
+        run: python -m py_compile server.py generate_demo.py tests/e2e_browser.py
+
+  browser-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Chromium and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install 'playwright==1.64.1'
+          python -m playwright install --with-deps chromium
+      - name: Browser playback and MP4 export
+        run: python -u tests/e2e_browser.py
+      - name: Upload failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure
+          path: test-results/
+          if-no-files-found: ignore

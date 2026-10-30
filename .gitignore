@@ -6,4 +6,5 @@ node_modules/
 *.mp4
 *.webm
 *.log
+test-results/
 .DS_Store
