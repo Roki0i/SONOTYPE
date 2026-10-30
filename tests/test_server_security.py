@@ -45,6 +45,18 @@ class SecurityTests(unittest.TestCase):
         status, _, _ = self.request("GET", "/", {"Host": "attacker.example"})
         self.assertEqual(status, 403)
 
+    def test_internal_files_are_not_served(self):
+        for path in ["/.git/config", "/.github/workflows/ci.yml",
+                     "/server.py", "/requirements-e2e.txt",
+                     "/src/../server.py", "/?secret=1/../server.py"]:
+            with self.subTest(path=path):
+                status, _, _ = self.request("GET", path)
+                self.assertEqual(status, 404)
+
+    def test_head_rejects_internal_files(self):
+        status, _, _ = self.request("HEAD", "/.git/config")
+        self.assertEqual(status, 404)
+
     def test_no_origin_cannot_convert(self):
         status, _, _ = self.request("POST", "/api/convert", {
             "Content-Type": "video/webm",

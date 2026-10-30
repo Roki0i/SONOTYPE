@@ -69,7 +69,14 @@ def main():
                 page.wait_for_timeout(150)
                 assert pixel() != before, "Theme did not redraw canvas"
                 page.locator("#playButton").click()
-                page.wait_for_function("Number(document.querySelector('#seek').value)>.25",timeout=15000)
+                # Poll from Python; CSP blocks eval-based wait_for_function.
+                deadline = time.monotonic() + 15
+                while time.monotonic() < deadline:
+                    if float(page.locator("#seek").input_value()) > .25:
+                        break
+                    page.wait_for_timeout(80)
+                else:
+                    raise AssertionError("Audio playhead did not advance")
                 page.locator("#playButton").click()
                 assert page.locator("#playButton").inner_text() == "▶"
                 page.locator("#audioFile").set_input_files(str(ROOT/"assets"/"demo.wav"))

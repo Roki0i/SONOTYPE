@@ -50,4 +50,16 @@ GitHub Actionsの `browser-e2e` ジョブでは、Playwrightでデモ音源とMI
 - ローカルで再実行する場合は、Playwright Python・Chromium・FFmpegをインストールしたうえで `python tests/e2e_browser.py` を実行してください。
 - この結果は **Linux上のChromiumによるE2E成功** を示します。Windows版Chrome/Edgeでの実機動作は引き続き未確認です。
 
+## セキュリティとバージョン管理（2026-10-31）
+
+- ローカルHTTPサーバーは127.0.0.1のみにバインド。Host検証、GET/HEAD配信ファイル制限、Origin検証を実施。
+- MP4変換APIはWebMのContent-Type、先頭ヘッダー、160MB上限、タイムアウトを検証。FFmpegのプロトコルをfile/pipeに制限します。
+- GitHub Actionsは公式リリースのfull commit SHAに固定。contents: read、checkoutのpersist-credentials: falseを設定。
+- .github/dependabot.ymlがGitHub ActionsおよびPython依存関係の更新PRを週次提案（自動マージなし）。
+- Playwright 1.64.1をrequirements-e2e.txtに固定（2026-10-22公開）。アプリ本体にはnpmの外部ランタイム依存はありません。
+- FFmpegは公式の[セキュリティ一覧](https://ffmpeg.org/security.html)を確認して、修正を含む配布元の最新版を使ってください。8.0.3 / 8.1.2 / 9.0等に2026年の修正が含まれます。旧版に修正がバックポートされた可能性は配布元で確認してください。
+- ffmpeg -version と python --version でローカルの版を確認してください。CIはUbuntu配布版FFmpeg 6.1.1で自作デモのみ動作検証するため、未知の外部動画に対する安全性は証明できません。
+- Dependabot alerts / security updatesのGitHub Settings上での有効化は未確認です。
+
+**注意：** これらはリスク低減策であり、音声・動画ファイルや外部ライブラリの安全性を保証するものではありません。
 詳細は docs/architecture.md を参照してください。

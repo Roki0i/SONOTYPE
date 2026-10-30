@@ -2,6 +2,7 @@
 """Loopback-only static server and tightly scoped WebM-to-MP4 converter."""
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 import json
 import os
 import shutil
@@ -12,6 +13,11 @@ import tempfile
 ROOT = Path(__file__).resolve().parent
 MAX_BYTES = 160 * 1024 * 1024
 WEBM_MAGIC = b"\x1a\x45\xdf\xa3"
+STATIC_FILES = frozenset({
+    "/", "/index.html", "/src/app.js", "/src/midi.js",
+    "/src/visualizer.js", "/src/styles.css",
+    "/assets/demo.wav", "/assets/demo.mid",
+})
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -45,6 +51,19 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(403, "Only the loopback host is allowed")
             return False
         return True
+
+    def allowed_static_file(self):
+        return urlsplit(self.path).path in STATIC_FILES
+
+    def do_GET(self):
+        if not self.allowed_static_file():
+            return self.send_error(404, "Not found")
+        super().do_GET()
+
+    def do_HEAD(self):
+        if not self.allowed_static_file():
+            return self.send_error(404, "Not found")
+        super().do_HEAD()
 
     def error_json(self, code, message):
         data = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
