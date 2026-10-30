@@ -41,4 +41,13 @@ python3 server.py
 - JavaScriptユニットテストは npm test、CIは GitHub Actions で実行。
 - 誤解を避けるため、実機E2EやActions成功は確認できた場合だけ記録します。
 
+
+## 自動ブラウザ検証（Linux Chromium）
+
+GitHub Actionsの `browser-e2e` ジョブでは、Playwrightでデモ音源とMIDIの表示、音声再生、テーマ切替、8秒のMP4書き出しを通し検証します。さらに `ffprobe` で1080×1920・H.264・AACを確認し、`ffmpeg volumedetect` で無音でないことを検査します。
+
+- [初回E2E成功結果（2026/10/31）](https://github.com/Roki0i/oto-signal-studio/actions/runs/41104455841) — 動画7.82秒、音声音量平均 -15.2 dB、ユニットテスト5/5成功。
+- ローカルで再実行する場合は、Playwright Python・Chromium・FFmpegをインストールしたうえで `python tests/e2e_browser.py` を実行してください。
+- この結果は **Linux上のChromiumによるE2E成功** を示します。Windows版Chrome/Edgeでの実機動作は引き続き未確認です。
+
 詳細は docs/architecture.md を参照してください。
