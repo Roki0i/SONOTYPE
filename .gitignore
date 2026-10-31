@@ -14,3 +14,4 @@ apps/studio/out/
 apps/studio/public/demo.wav
 apps/studio/public/demo.mid
 apps/studio/public/render-uploads/
+apps/studio/public/demo-analysis.json

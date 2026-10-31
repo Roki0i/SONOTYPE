@@ -22,7 +22,7 @@ const DURATIONS = new Set([8, 15, 30]);
 
 export function validateMetadata(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Error('Invalid props');
-  const {title, theme, seconds, levels, notes} = raw;
+  const {title, theme, seconds, levels, spectrum, bands, notes} = raw;
   if (typeof title !== 'string' || title.length < 1 || title.length > 64 || /[\x00-\x1f]/.test(title)) {
     throw Error('Invalid title');
   }
@@ -31,13 +31,18 @@ export function validateMetadata(raw) {
     !levels.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1)) {
     throw Error('Invalid audio levels');
   }
+  const rowValid = (rows, width) => Array.isArray(rows) && rows.length === seconds * 30 &&
+    rows.every(row => Array.isArray(row) && row.length === width &&
+      row.every(v => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1));
+  if (!rowValid(spectrum, 26)) throw Error('Invalid FFT spectrum');
+  if (!rowValid(bands, 3)) throw Error('Invalid frequency bands');
   if (!Array.isArray(notes) || notes.length > 20000 ||
     !notes.every(n => n && typeof n === 'object' && Number.isInteger(n.pitch) &&
       n.pitch >= 0 && n.pitch <= 127 && Number.isFinite(n.time) && n.time >= 0 &&
       n.time <= 3600 && Number.isFinite(n.duration) && n.duration > 0 && n.duration <= 120)) {
     throw Error('Invalid MIDI notes');
   }
-  return {title, theme, seconds, levels, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
+  return {title, theme, seconds, levels, spectrum, bands, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
 }
 
 export function validateAudio(bytes, extension) {
@@ -144,6 +149,7 @@ export function makeExportServer({render=cliRender}={}){
       const relative=uploadDir.slice(UPLOADS.length+1).replaceAll('\\','/');
       const props={
         title:metadata.title,theme:metadata.theme,notes:metadata.notes,levels:metadata.levels,
+        spectrum:metadata.spectrum,bands:metadata.bands,
         audioSrc:'static:render-uploads/'+relative+'/'+fileName
       };
       const propsPath=join(workDir,'props.json');

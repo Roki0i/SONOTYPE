@@ -2,7 +2,8 @@ import {useMemo, useRef, useState} from 'react';
 import {Player} from '@remotion/player';
 import {staticFile} from 'remotion';
 import {SignalScene} from './remotion/SignalScene';
-import {demoNotes, makeDemoLevels} from './remotion/defaults';
+import {demoNotes, demoAnalysis} from './remotion/defaults';
+import {trimAnalysis, type AudioAnalysis} from './signal-analysis.mjs';
 import type {Theme, Note} from './remotion/types';
 import {analyzeAudio} from './audio-analysis';
 import {readMidi} from './midi';
@@ -12,7 +13,7 @@ export function App(){
   const [theme,setTheme]=useState<Theme>('arctic');
   const [seconds,setSeconds]=useState(15);
   const [notes,setNotes]=useState<Note[]>(demoNotes);
-  const [levels,setLevels]=useState<number[]>(makeDemoLevels());
+  const [analysis,setAnalysis]=useState<AudioAnalysis>(demoAnalysis);
   const [source,setSource]=useState(staticFile('demo.wav'));
   const [title,setTitle]=useState('ORIGINAL DEMO');
   const [status,setStatus]=useState('デモ音源 / MIDIを使用中');
@@ -20,19 +21,20 @@ export function App(){
   const uploaded=useRef<string|null>(null);
   const audioFile=useRef<File|null>(null);
   const [exporting,setExporting]=useState(false);
-  const props=useMemo(()=>({title,theme,audioSrc:source,notes,levels}),[title,theme,source,notes,levels]);
+  const frames=useMemo(()=>trimAnalysis(analysis,seconds*FPS),[analysis,seconds]);
+  const props=useMemo(()=>({title,theme,audioSrc:source,notes,...frames}),[title,theme,source,notes,frames]);
   async function setAudio(file?:File){
     if(!file)return;
     if(!file.type.startsWith('audio/')&&!/\.(wav|mp3|m4a|aac|ogg)$/i.test(file.name)){setStatus('音声ファイルを選んでください');return;}
     setLoading(true);
     try{
-      const data=await analyzeAudio(file,seconds,FPS);
+      const data=await analyzeAudio(file,30);
       const url=URL.createObjectURL(file);
       if(uploaded.current)URL.revokeObjectURL(uploaded.current);
       uploaded.current=url;
       audioFile.current=file;
       setSource(url);setTitle(file.name.replace(/\.[^.]+$/,'').slice(0,40));
-      setLevels(data);setNotes([]);setStatus('音声を解析しました。音程表示はMIDIが必要です');
+      setAnalysis(data);setNotes([]);setStatus('音声を解析しました。音程表示はMIDIが必要です');
     }catch(e){setStatus(e instanceof Error?e.message:'音声の読み込みに失敗しました');}
     finally{setLoading(false);}
   }
@@ -47,13 +49,9 @@ export function App(){
     uploaded.current=null;
     audioFile.current=null;
     setSource(staticFile('demo.wav'));setTitle('ORIGINAL DEMO');
-    setNotes(demoNotes);setLevels(makeDemoLevels(seconds*FPS));setStatus('デモ音源 / MIDIに戻しました');
+    setNotes(demoNotes);setAnalysis(demoAnalysis);setStatus('デモ音源 / MIDIに戻しました');
   }
-  function updateSeconds(n:number){
-    setSeconds(n);
-    if(!uploaded.current)setLevels(makeDemoLevels(n*FPS));
-    else setLevels(prev=>Array.from({length:n*FPS},(_,i)=>prev[i]??0));
-  }
+  function updateSeconds(n:number){setSeconds(n);}
   async function exportMp4(){
     if(exporting||loading)return;
     setExporting(true);setStatus('RemotionでMP4を生成しています…');
@@ -62,7 +60,7 @@ export function App(){
         'demo.wav',{type:'audio/wav'});
       const form=new FormData();
       form.append('audio',file);
-      form.append('props',JSON.stringify({title,theme,seconds,levels,notes}));
+      form.append('props',JSON.stringify({title,theme,seconds,notes,...frames}));
       const response=await fetch('/api/export',{method:'POST',body:form});
       if(!response.ok){const data=await response.json().catch(()=>({error:'書き出しに失敗しました'}));throw Error(data.error);}
       const video=await response.blob();
@@ -76,7 +74,7 @@ export function App(){
   }
   return <div className="layout">
     <aside className="sidebar">
-      <div className="brand">OTO <span>/</span> STUDIO <small>REMOTION ENGINE v0.2</small></div>
+      <div className="brand">OTO <span>/</span> STUDIO <small>REMOTION ENGINE v0.4</small></div>
       <section><span className="eyebrow">01 / SOURCE</span>
         <label className="file-label">音声ファイル <input disabled={loading} type="file" accept="audio/*,.mp3,.wav,.m4a"
           onChange={e=>{void setAudio(e.target.files?.[0]);e.target.value='';}}/></label>
@@ -99,7 +97,7 @@ export function App(){
     <main className="main">
       <header><span>STUDIO / REMOTION PREVIEW</span><span>FRAME-DRIVEN</span></header>
       <div className="stage-layout"><h1>音楽を、視覚に。</h1>
-        <p className="hint">デモ波形は合成パターンです。アップロード音声はブラウザ内でフレーム別RMSを解析します。</p>
+        <p className="hint">音声を30fpsのRMS・FFT（26周波数帯）で解析します。プレビューとMP4で同じ測定値を使用します。</p>
         <div className="preview"><Player key={seconds} component={SignalScene} inputProps={props}
           durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
           controls style={{width:'100%',maxWidth:420,aspectRatio:'9 / 16'}}/></div>
