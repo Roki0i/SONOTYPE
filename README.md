@@ -50,6 +50,22 @@ GitHub Actionsの `browser-e2e` ジョブでは、Playwrightでデモ音源とMI
 - ローカルで再実行する場合は、Playwright Python・Chromium・FFmpegをインストールしたうえで `python tests/e2e_browser.py` を実行してください。
 - この結果は **Linux上のChromiumによるE2E成功** を示します。Windows版Chrome/Edgeでの実機動作は引き続き未確認です。
 
+## Windows Chrome・Edge 自動検証（2026-10-31）
+
+- GitHub Actions の Windows Server 2025 ランナー上で、Chrome Stable と Edge Stable の実ブラウザを Playwright 1.64.1 で操作。
+- Chrome `156.0.8078.48` / Edge `155.0.4283.62`、FFmpeg `9.0.2` を確認。
+- 各ブラウザで音声・MIDI読込、再生・停止、テーマ変更、8秒MP4出力、H.264/AAC・1080×1920・非無音の検証に成功。
+- Chrome：出力 `7.95秒 / 1,985,071 bytes`、Edge：`7.95秒 / 2,005,929 bytes`。いずれも平均音量 `-15.2 dB`。
+- [PR #1](https://github.com/Roki0i/oto-signal-studio/pull/1) / [Windows・Linux E2E成功](https://github.com/Roki0i/oto-signal-studio/actions/runs/41160459284)。
+- これは **GitHub-hosted Windows Server 2025のCI検証**です。利用者のWindows PC上での操作確認・音画同期精度の測定は未実施です。
+
+WindowsでE2Eを再実行する場合、Python 3.12、ChromeまたはEdge、FFmpeg/ffprobeを準備してから以下を実行します。
+
+~~~powershell
+python -m pip install -r requirements-e2e.txt
+$env:OTO_BROWSER_CHANNEL='chrome'; python tests/e2e_browser.py
+$env:OTO_BROWSER_CHANNEL='msedge'; python tests/e2e_browser.py
+~~~
 ## セキュリティとバージョン管理（2026-10-31）
 
 - ローカルHTTPサーバーは127.0.0.1のみにバインド。Host検証、GET/HEAD配信ファイル制限、Origin検証を実施。
