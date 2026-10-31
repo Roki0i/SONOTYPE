@@ -128,14 +128,7 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
-      - name: Resolve exact dependency lock
-        run: npm install --package-lock-only --ignore-scripts --no-fund
-      - name: Emit lockfile tail for final dependency pinning
-        run: |
-          echo OTO_PACKAGE_LOCK_TAIL_BEGIN
-          node -e "const f=require('fs');const b=Buffer.from(JSON.stringify(JSON.parse(f.readFileSync('package-lock.json','utf8')))).toString('base64');console.log(b.slice(160000))" | fold -w 3000
-          echo OTO_PACKAGE_LOCK_TAIL_END
-      - name: Install from resolved lock
+      - name: Install pinned dependencies via npm ci
         run: npm ci --ignore-scripts --no-fund
       - name: Security audit of full dependency tree
         run: npm audit --audit-level=high
@@ -151,3 +144,4 @@ jobs:
         run: |
           test -s out/ci-demo.mp4
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of csv=p=0 out/ci-demo.mp4
+          test "$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 out/ci-demo.mp4)" = "aac"
