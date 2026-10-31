@@ -152,6 +152,10 @@ export function makeExportServer({render=cliRender}={}){
       await render({propsPath,outputPath,seconds:metadata.seconds});
       const mp4=await readFile(outputPath);
       if(mp4.length<1000||mp4.length>MAX_MP4)throw Error('Invalid MP4 result');
+      await rm(uploadDir,{recursive:true,force:true});
+      await rm(workDir,{recursive:true,force:true});
+      uploadDir=null;workDir=null;
+      busy=false;
       res.writeHead(200,{
         'Content-Type':'video/mp4','Content-Length':mp4.length,
         'Content-Disposition':'attachment; filename="oto-custom.mp4"',
