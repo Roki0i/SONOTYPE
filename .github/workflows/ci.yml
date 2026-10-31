@@ -144,6 +144,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: API export with uploaded WAV (H.264/AAC smoke test)
         run: node scripts/export-api-smoke.mjs
+      - name: Frame-level audio and MIDI synchronization regression
+        run: python scripts/check-av-sync.py out/ci-demo.mp4 ../../assets/demo.wav
       - name: Validate rendered MP4
         run: |
           test -s out/ci-demo.mp4

@@ -109,3 +109,7 @@ Remotion requires a company license for some commercial organizations; review ht
 - 自動テストは`node --test scripts/export-api.test.mjs`、エンドツーエンド試験は`node scripts/export-api-smoke.mjs`（FFmpeg/ffprobeとRemotion実行可能環境が必要）です。
 
 これはローカル専用の試作アプリであり、インターネット公開や認証無しでのLAN公開は想定していません。
+
+## Audio / video sync regression (original demo)
+
+`python apps/studio/scripts/check-av-sync.py <rendered-demo.mp4> <generated-demo.wav>` checks: H.264 1080x1920/30fps, AAC, media start/end timestamps, source WAV versus decoded AAC correlation, and piano-roll note highlights at exact 0.5-second frame boundaries. Requires FFmpeg and FFprobe, uses only Python standard library. CI exercises a 60-frame render and verifies two audio sample windows plus three note transitions. This checker is **specific to the original demo MIDI and the current reference scene layout**, not arbitrary user-uploaded music. The original demo uses **synthetic visual levels**; the checker does **not** certify accurate real-time audio spectrum or lip-sync for other audio. For longer validation, run against a full 15-second `npm run render:demo` output.
