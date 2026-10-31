@@ -5,7 +5,10 @@ import {makeExportServer,validateMetadata,validateAudio} from './export-api.mjs'
 
 const ORIGIN='http://127.0.0.1:5173';
 const base={title:'TEST',theme:'mint',seconds:8,
-  levels:Array.from({length:240},()=>.25),notes:[{pitch:60,time:0,duration:.5}]};
+  levels:Array.from({length:240},()=>.25),
+  spectrum:Array.from({length:240},()=>Array(26).fill(.2)),
+  bands:Array.from({length:240},()=>[.2,.3,.4]),
+  notes:[{pitch:60,time:0,duration:.5}]};
 const audio=Buffer.alloc(1200);
 audio.write('RIFF',0);audio.write('WAVE',8);
 let server;
@@ -28,6 +31,9 @@ test('Valid metadata is accepted',()=>{
 test('Invalid duration, level, and MIDI rejected',()=>{
   assert.throws(()=>validateMetadata({...base,seconds:120}),/duration/);
   assert.throws(()=>validateMetadata({...base,levels:[NaN]}),/levels/);
+  assert.throws(()=>validateMetadata({...base,spectrum:[]}),/FFT/);
+  assert.throws(()=>validateMetadata({...base,spectrum:[...base.spectrum.slice(0,-1),[-1,...Array(25).fill(0)]]}),/FFT/);
+  assert.throws(()=>validateMetadata({...base,bands:base.bands.map(row=>row.slice(0,2))}),/bands/);
   assert.throws(()=>validateMetadata({...base,notes:[{pitch:-1,time:0,duration:.2}]}),/MIDI/);
 });
 test('Audio signature must match file extension',()=>{

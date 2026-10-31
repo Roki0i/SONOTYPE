@@ -12,14 +12,15 @@ const clamp = (x: number) => Math.min(1, Math.max(0, x));
 const panel: React.CSSProperties = {padding: 28, background: '#fff', border: '2px solid #d2e0ec'};
 const titleStyle: React.CSSProperties = {fontSize: 19, letterSpacing: 1.5, fontWeight: 700, color: '#69859e'};
 
-export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, notes, levels}) => {
+export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, notes, levels, spectrum, bands}) => {
   const frame = useCurrentFrame();
   const {fps, durationInFrames} = useVideoConfig();
   const t = frame / fps;
   const c = colors[theme];
   const resolvedAudioSrc = audioSrc.startsWith('static:') ? staticFile(audioSrc.slice(7)) : audioSrc;
   const level = clamp(levels[frame] ?? 0);
-  const low = level, mid = clamp(level*.81+.05), high = clamp(level*.67+.03);
+  const bins = spectrum[frame] ?? Array(26).fill(0);
+  const [low, mid, high] = bands[frame] ?? [0, 0, 0];
   return (
     <AbsoluteFill style={{background: c.background, fontFamily: 'Consolas, monospace', color: c.navy}}>
       {resolvedAudioSrc ? <Audio src={resolvedAudioSrc}/> : null}
@@ -59,12 +60,12 @@ export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, notes
         </div>
         <div style={{display:'flex',gap:18,marginTop:22}}>
           <div style={{...panel,width:626,height:364}}>
-            <div style={titleStyle}>SPECTRUM / SYNTHETIC DISPLAY</div>
+            <div style={titleStyle}>SPECTRUM / 1024-POINT FFT</div>
             <div style={{display:'flex',height:255,alignItems:'end',gap:9}}>
-              {Array.from({length:26},(_,i)=>{
-                const amount=clamp(level*(1-i/34)*(.55+.45*Math.sin(i*3+frame*.045)**2));
-                return <div key={i} style={{width:15,height:3+amount*232,background:i%4===0?c.light:c.accent}}/>;
-              })}
+              {bins.map((value,i)=>(
+                <div key={i} style={{width:15,height:3+clamp(value)*232,
+                  background:i%4===0?c.light:c.accent}}/>
+              ))}
             </div>
           </div>
           <div style={{...panel,flex:1,height:364}}>

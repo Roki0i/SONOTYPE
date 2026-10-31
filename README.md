@@ -113,3 +113,13 @@ Remotion requires a company license for some commercial organizations; review ht
 ## Audio / video sync regression (original demo)
 
 `python apps/studio/scripts/check-av-sync.py <rendered-demo.mp4> <generated-demo.wav>` checks: H.264 1080x1920/30fps, AAC, media start/end timestamps, source WAV versus decoded AAC correlation, and piano-roll note highlights at exact 0.5-second frame boundaries. Requires FFmpeg and FFprobe, uses only Python standard library. CI exercises a 60-frame render and verifies two audio sample windows plus three note transitions. This checker is **specific to the original demo MIDI and the current reference scene layout**, not arbitrary user-uploaded music. The original demo uses **synthetic visual levels**; the checker does **not** certify accurate real-time audio spectrum or lip-sync for other audio. For longer validation, run against a full 15-second `npm run render:demo` output.
+
+## v0.4 / 実音声FFTスペクトラム
+
+- デモ音源とアップロード音源の**両方**を対象に、30fpsのフレーム中心時刻で1024-point Hann窓FFTとフレーム別RMSを測定。対数26周波数帯、BASS/MID/TREBLE（220Hzと2kHzで区分）を可視化。
+- ローカルで音声ファイルを解析し、同じ測定済みデータをプレビューとRemotion MP4に使う。外部サービスへの送信なし。
+- `npm run prepare:demo` が元の `assets/demo.wav` から `apps/studio/public/demo-analysis.json` を生成する。この生成物は `.gitignore` に入れており、`npm run dev` / `npm run build` / `npm run render:demo` の前に生成される。
+- 音声の先頭最大30秒を解析。動画尺を8/15/30秒に変えても同じ解析結果をスライスでき、音声が終了した後の音量・スペクトラムはゼロ。
+- 各周波数帯はFFTピークをdB変換、音量はフレーム区間RMSを表示。放送音響基準のラウドネス測定器ではなく、窓長による時間・周波数分解能制約がある。
+- `node --test scripts/signal-analysis.test.mjs` で無音、95/440/4000Hzの周波数分離、終了後の無音、値域と再現性を検証。CIにはnpm監査、TypeScript、MP4出力、同期検査を維持。
+

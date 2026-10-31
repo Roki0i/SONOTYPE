@@ -134,6 +134,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Test local export API validation
         run: node --test scripts/export-api.test.mjs
+      - name: Test deterministic FFT frequency analysis
+        run: node --test scripts/signal-analysis.test.mjs
       - name: Typecheck and Vite build
         run: npm run build
       - name: Validate Remotion composition

@@ -8,11 +8,15 @@ import {makeExportServer} from './export-api.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../../..');
 const demo=await readFile(join(root,'assets/demo.wav'));
+const measured=JSON.parse(await readFile(join(root,'apps/studio/public/demo-analysis.json'),'utf8'));
+const count=240;
 const form=new FormData();
 form.append('audio',new Blob([demo],{type:'audio/wav'}),'demo.wav');
 form.append('props',JSON.stringify({title:'CI CUSTOM AUDIO',theme:'violet',seconds:8,
   notes:[{time:0,pitch:74,duration:.42}],
-  levels:Array.from({length:240},(_,i)=>.22+.3*Math.abs(Math.sin(i/8)))}));
+  levels:measured.levels.slice(0,count),
+  spectrum:measured.spectrum.slice(0,count),
+  bands:measured.bands.slice(0,count)}));
 const server=makeExportServer();
 const folder=await mkdtemp(join(tmpdir(),'oto-export-smoke-'));
 let response;
