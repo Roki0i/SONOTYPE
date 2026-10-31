@@ -53,12 +53,12 @@ def main():
         with sync_playwright() as p:
             channel = os.environ.get("OTO_BROWSER_CHANNEL", "").strip()
             if channel not in ("", "chrome", "msedge"):
-                raise ValueError("Unsupported OTO_BROWSER_CHANNEL")
-            launch_options = {"headless": True, "args": ["--autoplay-policy=no-user-gesture-required"]}
+                raise ValueError("Invalid browser channel")
+            options = {"headless": True, "args": ["--autoplay-policy=no-user-gesture-required"]}
             if channel:
-                launch_options["channel"] = channel
-            browser = p.chromium.launch(**launch_options)
-            print(f"TEST BROWSER: {channel or 'playwright-chromium'} / {browser.version}", flush=True)
+                options["channel"] = channel
+            browser = p.chromium.launch(**options)
+            print("TEST BROWSER:", channel or "playwright-chromium", browser.version, flush=True)
             context = browser.new_context(accept_downloads=True, viewport={"width":1440,"height":900})
             page = context.new_page()
             errors = []
@@ -101,7 +101,7 @@ def main():
                     page.locator("#status").get_by_text("MP4を書き出しました",exact=False).wait_for()
                     check_mp4(target)
                 assert not errors, f"JavaScript exceptions: {errors}"
-                print(f"BROWSER E2E PASS ({channel or 'chromium'}): audio/MIDI, playback, theme and MP4+audio")
+                print("BROWSER E2E PASS:", channel or "chromium", "audio/MIDI, playback, theme and MP4+audio")
             except Exception:
                 try:
                     (ROOT/"test-results").mkdir(exist_ok=True)

@@ -110,3 +110,38 @@ jobs:
           name: windows-${{ matrix.channel }}-failure
           path: test-results/
           if-no-files-found: ignore
+
+  modern-studio:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/studio
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install pinned dependencies via npm ci
+        run: npm ci --ignore-scripts --no-fund
+      - name: Security audit of full dependency tree
+        run: npm audit --audit-level=high
+      - name: Typecheck and Vite build
+        run: npm run build
+      - name: Validate Remotion composition
+        run: npx remotion compositions src/remotion/entry.ts
+      - name: Render first 60 frames to H.264 MP4
+        run: npx remotion render src/remotion/entry.ts OTO-Demo out/ci-demo.mp4 --frames=0-59 --codec=h264 --concurrency=2
+      - name: Install FFmpeg for output inspection
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Validate rendered MP4
+        run: |
+          test -s out/ci-demo.mp4
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of csv=p=0 out/ci-demo.mp4
+          test "$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 out/ci-demo.mp4)" = "aac"
