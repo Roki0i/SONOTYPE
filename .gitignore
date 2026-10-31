@@ -8,3 +8,8 @@ node_modules/
 *.log
 test-results/
 .DS_Store
+apps/studio/node_modules/
+apps/studio/dist/
+apps/studio/out/
+apps/studio/public/demo.wav
+apps/studio/public/demo.mid

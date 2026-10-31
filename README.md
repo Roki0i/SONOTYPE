@@ -79,3 +79,19 @@ $env:OTO_BROWSER_CHANNEL='msedge'; python tests/e2e_browser.py
 
 **注意：** これらはリスク低減策であり、音声・動画ファイルや外部ライブラリの安全性を保証するものではありません。
 詳細は docs/architecture.md を参照してください。
+
+## v0.2 React / TypeScript / Remotion (experimental)
+
+The existing root v0.1 remains the tested stable local app. A separate React+TS+Vite editor and Remotion Player/CLI composition live in `apps/studio`. Dependencies are fixed to exact versions and reviewed using npm audit and CI. The new composition is frame-deterministic, 1080x1920 at 30fps.
+
+From `apps/studio` after installing Node.js 24 and Python 3:
+
+```powershell
+npm install
+npm run dev
+npm run render:demo
+```
+
+`npm run render:demo` renders the **original bundled demo** to `out/oto-demo.mp4`; it does not yet export user-uploaded audio. The browser preview can load user audio and MIDI (local processing) and the visualizer uses sampled per-frame RMS from the uploaded audio. The bundled demo's visual level data is synthetic and should not be labeled as measured waveform data. The original app continues working via `python server.py` at the repository root.
+
+Remotion requires a company license for some commercial organizations; review https://github.com/remotion-dev/remotion/blob/main/LICENSE.md before deployment. Windows browser E2E for the new React editor is not yet implemented; the existing v0.1 browser tests are unchanged.
