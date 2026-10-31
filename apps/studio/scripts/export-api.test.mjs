@@ -58,3 +58,15 @@ test('Wrong properties rejected',async()=>{
   const r=await request({props:{...base,levels:[]}});
   assert.equal(r.status,400);
 });
+
+test('Development command launches both UI and export API', async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {resolve}=await import('node:path');
+  const {fileURLToPath}=await import('node:url');
+  const root=resolve(fileURLToPath(new URL('../',import.meta.url)));
+  const pkg=JSON.parse(await readFile(resolve(root,'package.json'),'utf8'));
+  const launcher=await readFile(resolve(root,'scripts/dev.mjs'),'utf8');
+  assert.match(pkg.scripts.dev,/node scripts\/dev\.mjs/);
+  assert.match(launcher,/export-api\.mjs/);
+  assert.match(launcher,/vite\/bin\/vite\.js/);
+});
