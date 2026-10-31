@@ -58,3 +58,55 @@ jobs:
           name: browser-failure
           path: test-results/
           if-no-files-found: ignore
+
+  windows-browser-e2e:
+    name: Windows / ${{ matrix.channel }}
+    runs-on: windows-2025
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [chrome, msedge]
+    env:
+      OTO_BROWSER_CHANNEL: ${{ matrix.channel }}
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install pinned browser automation
+        run: python -m pip install --disable-pip-version-check -r requirements-e2e.txt
+      - name: Install FFmpeg 9.0.2 from winget
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          winget install --id Gyan.FFmpeg --exact --version 9.0.2 --source winget --silent --disable-interactivity --accept-source-agreements --accept-package-agreements
+          if ($LASTEXITCODE -ne 0) { throw "winget FFmpeg installation failed: $LASTEXITCODE" }
+          $roots = @(
+            (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages'),
+            'C:\Program Files\WinGet\Packages'
+          )
+          $ffmpeg = $null
+          foreach ($root in $roots) {
+            if (Test-Path $root) {
+              $ffmpeg = Get-ChildItem $root -Filter ffmpeg.exe -File -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { Test-Path (Join-Path $_.DirectoryName 'ffprobe.exe') } | Select-Object -First 1
+              if ($ffmpeg) { break }
+            }
+          }
+          if (-not $ffmpeg) { throw 'Could not locate installed ffmpeg.exe and ffprobe.exe' }
+          $binDir = $ffmpeg.DirectoryName
+          Add-Content -Path $env:GITHUB_PATH -Value $binDir -Encoding utf8
+          & (Join-Path $binDir 'ffmpeg.exe') -version | Select-Object -First 1
+      - name: Windows browser playback and MP4 export
+        run: python -u tests/e2e_browser.py
+      - name: Upload Windows browser failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-${{ matrix.channel }}-failure
+          path: test-results/
+          if-no-files-found: ignore
