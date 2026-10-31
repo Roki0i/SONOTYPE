@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Audio} from '@remotion/media';
 import type {SceneProps, Theme} from './types';
 
@@ -17,11 +17,12 @@ export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, notes
   const {fps, durationInFrames} = useVideoConfig();
   const t = frame / fps;
   const c = colors[theme];
+  const resolvedAudioSrc = audioSrc.startsWith('static:') ? staticFile(audioSrc.slice(7)) : audioSrc;
   const level = clamp(levels[frame] ?? 0);
   const low = level, mid = clamp(level*.81+.05), high = clamp(level*.67+.03);
   return (
     <AbsoluteFill style={{background: c.background, fontFamily: 'Consolas, monospace', color: c.navy}}>
-      {audioSrc ? <Audio src={audioSrc}/> : null}
+      {resolvedAudioSrc ? <Audio src={resolvedAudioSrc}/> : null}
       <div style={{height: 533, background: c.navy, color: '#e9f7ff', padding: 50}}>
         <div style={{fontSize: 28, fontWeight: 900, letterSpacing: 3}}>OTO / SIGNAL STUDIO</div>
         <div style={{color: c.light, fontSize: 18, marginTop: 17}}>MUSIC / DATA / FRAME ENGINE</div>

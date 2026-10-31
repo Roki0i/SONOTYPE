@@ -132,6 +132,8 @@ jobs:
         run: npm ci --ignore-scripts --no-fund
       - name: Security audit of full dependency tree
         run: npm audit --audit-level=high
+      - name: Test local export API validation
+        run: node --test scripts/export-api.test.mjs
       - name: Typecheck and Vite build
         run: npm run build
       - name: Validate Remotion composition
@@ -140,6 +142,8 @@ jobs:
         run: npx remotion render src/remotion/entry.ts OTO-Demo out/ci-demo.mp4 --frames=0-59 --codec=h264 --concurrency=2
       - name: Install FFmpeg for output inspection
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: API export with uploaded WAV (H.264/AAC smoke test)
+        run: node scripts/export-api-smoke.mjs
       - name: Validate rendered MP4
         run: |
           test -s out/ci-demo.mp4

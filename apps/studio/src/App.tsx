@@ -18,6 +18,8 @@ export function App(){
   const [status,setStatus]=useState('デモ音源 / MIDIを使用中');
   const [loading,setLoading]=useState(false);
   const uploaded=useRef<string|null>(null);
+  const audioFile=useRef<File|null>(null);
+  const [exporting,setExporting]=useState(false);
   const props=useMemo(()=>({title,theme,audioSrc:source,notes,levels}),[title,theme,source,notes,levels]);
   async function setAudio(file?:File){
     if(!file)return;
@@ -28,6 +30,7 @@ export function App(){
       const url=URL.createObjectURL(file);
       if(uploaded.current)URL.revokeObjectURL(uploaded.current);
       uploaded.current=url;
+      audioFile.current=file;
       setSource(url);setTitle(file.name.replace(/\.[^.]+$/,'').slice(0,40));
       setLevels(data);setNotes([]);setStatus('音声を解析しました。音程表示はMIDIが必要です');
     }catch(e){setStatus(e instanceof Error?e.message:'音声の読み込みに失敗しました');}
@@ -42,6 +45,7 @@ export function App(){
   function reset(){
     if(uploaded.current)URL.revokeObjectURL(uploaded.current);
     uploaded.current=null;
+    audioFile.current=null;
     setSource(staticFile('demo.wav'));setTitle('ORIGINAL DEMO');
     setNotes(demoNotes);setLevels(makeDemoLevels(seconds*FPS));setStatus('デモ音源 / MIDIに戻しました');
   }
@@ -49,6 +53,26 @@ export function App(){
     setSeconds(n);
     if(!uploaded.current)setLevels(makeDemoLevels(n*FPS));
     else setLevels(prev=>Array.from({length:n*FPS},(_,i)=>prev[i]??0));
+  }
+  async function exportMp4(){
+    if(exporting||loading)return;
+    setExporting(true);setStatus('RemotionでMP4を生成しています…');
+    try{
+      const file=audioFile.current??new File([await (await fetch(staticFile('demo.wav'))).blob()],
+        'demo.wav',{type:'audio/wav'});
+      const form=new FormData();
+      form.append('audio',file);
+      form.append('props',JSON.stringify({title,theme,seconds,levels,notes}));
+      const response=await fetch('/api/export',{method:'POST',body:form});
+      if(!response.ok){const data=await response.json().catch(()=>({error:'書き出しに失敗しました'}));throw Error(data.error);}
+      const video=await response.blob();
+      if(video.size<1000)throw Error('出力動画が空です');
+      const url=URL.createObjectURL(video),a=document.createElement('a');
+      a.href=url;a.download='oto-'+Date.now()+'.mp4';document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      setStatus('MP4を書き出しました（'+(video.size/1048576).toFixed(1)+'MB）');
+    }catch(e){setStatus(e instanceof Error?e.message:'書き出し失敗');}
+    finally{setExporting(false);}
   }
   return <div className="layout">
     <aside className="sidebar">
@@ -67,7 +91,8 @@ export function App(){
       <section><span className="eyebrow">03 / OUTPUT</span>
         <p>1080 × 1920 / 30 FPS</p>
         <p className="hint">ブラウザのプレビューはReactとRemotion Playerで描画します。</p>
-        <p className="hint">現段階のRemotion CLI動画書き出しはデモ音源のみ対応。アップロード音源のMP4出力は次の実装対象です。</p>
+        <button disabled={exporting||loading} className="export-button" onClick={()=>void exportMp4()}>{exporting?"MP4生成中…":"MP4を書き出す"}</button>
+        <p className="hint">ローカルのRemotionで30fpsのMP4を生成します。音声は外部へ送信しません。</p>
       </section>
       <div className="sidebar-status" role="status">{loading?'解析中…':status}</div>
     </aside>

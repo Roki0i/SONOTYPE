@@ -95,3 +95,17 @@ npm run render:demo
 `npm run render:demo` renders the **original bundled demo** to `out/oto-demo.mp4`; it does not yet export user-uploaded audio. The browser preview can load user audio and MIDI (local processing) and the visualizer uses sampled per-frame RMS from the uploaded audio. The bundled demo's visual level data is synthetic and should not be labeled as measured waveform data. The original app continues working via `python server.py` at the repository root.
 
 Remotion requires a company license for some commercial organizations; review https://github.com/remotion-dev/remotion/blob/main/LICENSE.md before deployment. Windows browser E2E for the new React editor is not yet implemented; the existing v0.1 browser tests are unchanged.
+
+## v0.3 ローカル音声からのMP4書き出し
+
+`apps/studio` から `npm ci` → `npm run dev` を実行し、`http://127.0.0.1:5173` を開くと、読み込んだWAV / MP3 / M4A / AAC / OGG音声とMIDIを使って「MP4を書き出す」が利用できます。音声はローカルのみで処理します。
+
+- Viteの127.0.0.1:5173から127.0.0.1:8787へローカルプロキシ接続します。ポート8787を外部公開しないでください。
+- アップロード上限は音声25MiB、全リクエスト27MiB。タイトル・テーマ・動画尺・波形RMS・MIDIノートを検証し、送信元OriginとHostを限定します。
+- Remotion CLIの`--props`へJSONをファイル経由で渡し、フレーム範囲を8 / 15 / 30秒に固定します。Windowsのシェルへユーザー入力を直接渡しません。
+- 音声は一時的に`apps/studio/public/render-uploads`へ保存して描画し、MP4送信後に自動消去します。一時データは.gitignoreで除外しています。
+- MP4は1080×1920・30fps・H.264/AAC。同時書き出しは1件のみ、240秒タイムアウト。
+- Reactプレビューは音声から計算したRMSを表示します。デモ音源の既定レベルは合成データです。MIDI未入力時、音程は推定しません。
+- 自動テストは`node --test scripts/export-api.test.mjs`、エンドツーエンド試験は`node scripts/export-api-smoke.mjs`（FFmpeg/ffprobeとRemotion実行可能環境が必要）です。
+
+これはローカル専用の試作アプリであり、インターネット公開や認証無しでのLAN公開は想定していません。
