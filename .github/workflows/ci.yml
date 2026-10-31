@@ -133,7 +133,8 @@ jobs:
       - name: Publish initial lock to job log for repository pinning
         run: |
           echo OTO_PACKAGE_LOCK_BEGIN
-          base64 -w0 package-lock.json | fold -w 3000
+          node -e "const f=require('fs');process.stdout.write(JSON.stringify(JSON.parse(f.readFileSync('package-lock.json','utf8'))))" > package-lock.min.json
+          base64 -w0 package-lock.min.json | fold -w 3000
           echo OTO_PACKAGE_LOCK_END
       - name: Install from resolved lock
         run: npm ci --ignore-scripts --no-fund
@@ -145,6 +146,8 @@ jobs:
         run: npx remotion compositions src/remotion/entry.ts
       - name: Render first 60 frames to H.264 MP4
         run: npx remotion render src/remotion/entry.ts OTO-Demo out/ci-demo.mp4 --frames=0-59 --codec=h264 --concurrency=2
+      - name: Install FFmpeg for output inspection
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Validate rendered MP4
         run: |
           test -s out/ci-demo.mp4
