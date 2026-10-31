@@ -8,7 +8,7 @@
   },
   "scripts": {
     "prepare:demo": "node scripts/prepare-demo.mjs",
-    "dev": "npm run prepare:demo && vite --host 127.0.0.1",
+    "dev": "npm run prepare:demo && node scripts/dev.mjs",
     "build": "npm run prepare:demo && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "render:demo": "npm run prepare:demo && remotion render src/remotion/entry.ts OTO-Demo out/oto-demo.mp4 --codec h264",
