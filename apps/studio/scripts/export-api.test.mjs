@@ -13,8 +13,12 @@ const base={title:'TEST',theme:'mint',seconds:8,
 const audio=Buffer.alloc(1200);
 audio.write('RIFF',0);audio.write('WAVE',8);
 let server;
+let lastExportProps;
 before(async()=>{
-  server=makeExportServer({render:async({outputPath})=>writeFile(outputPath,Buffer.alloc(1201,0x11))});
+  server=makeExportServer({render:async({outputPath,propsPath})=>{
+    lastExportProps=JSON.parse(await readFile(propsPath,'utf8'));
+    await writeFile(outputPath,Buffer.alloc(1201,0x11));
+  }});
   await new Promise(ok=>server.listen(8787,'127.0.0.1',ok));
 });
 after(async()=>{await new Promise(ok=>server.close(ok));});
@@ -110,6 +114,9 @@ test('Export forwards validated template, artist and local cover reference',asyn
     {method:'POST',headers:{Origin:ORIGIN},body:form});
   assert.equal(response.status,200);
   assert.equal(response.headers.get('content-type'),'video/mp4');
+  assert.equal(lastExportProps.templateId,'lofi-player');
+  assert.equal(lastExportProps.artist,'A+B');
+  assert.match(lastExportProps.coverSrc,/^static:render-uploads\/job-[\w-]+\/cover\.png$/);
 });
 test('Invalid cover mimetype is rejected',async()=>{
   const png=Buffer.from([137,80,78,71,13,10,26,10,0,0,0,0,0]);
