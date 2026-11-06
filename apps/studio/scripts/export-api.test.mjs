@@ -1,7 +1,8 @@
 import {test, before, after} from 'node:test';
 import assert from 'node:assert/strict';
-import {writeFile} from 'node:fs/promises';
-import {makeExportServer,validateMetadata,validateAudio} from './export-api.mjs';
+import {writeFile,readFile} from 'node:fs/promises';
+import {makeExportServer,validateMetadata,validateAudio,validateCover} from './export-api.mjs';
+import {TEMPLATES,isTemplateId} from '../src/templates.mjs';
 
 const ORIGIN='http://127.0.0.1:5173';
 const base={title:'TEST',theme:'mint',seconds:8,
@@ -12,15 +13,20 @@ const base={title:'TEST',theme:'mint',seconds:8,
 const audio=Buffer.alloc(1200);
 audio.write('RIFF',0);audio.write('WAVE',8);
 let server;
+let lastExportProps;
 before(async()=>{
-  server=makeExportServer({render:async({outputPath})=>writeFile(outputPath,Buffer.alloc(1201,0x11))});
+  server=makeExportServer({render:async({outputPath,propsPath})=>{
+    lastExportProps=JSON.parse(await readFile(propsPath,'utf8'));
+    await writeFile(outputPath,Buffer.alloc(1201,0x11));
+  }});
   await new Promise(ok=>server.listen(8787,'127.0.0.1',ok));
 });
 after(async()=>{await new Promise(ok=>server.close(ok));});
-async function request({origin=ORIGIN,props=base,mime='audio/wav'}={}){
+async function request({origin=ORIGIN,props=base,mime='audio/wav',cover=null}={}){
   const form=new FormData();
   form.append('audio',new Blob([audio],{type:mime}),'test.wav');
   form.append('props',JSON.stringify(props));
+  if(cover)form.append('cover',new Blob([cover.bytes],{type:cover.type}),cover.filename);
   return fetch('http://127.0.0.1:8787/api/export',{
     method:'POST',headers:{Origin:origin},body:form
   });
@@ -75,4 +81,45 @@ test('Development command launches both UI and export API', async()=>{
   assert.match(pkg.scripts.dev,/node scripts\/dev\.mjs/);
   assert.match(launcher,/export-api\.mjs/);
   assert.match(launcher,/vite\/bin\/vite\.js/);
+});
+
+test('Template catalog has unique stable IDs and safe metadata',()=>{
+  assert.deepEqual(TEMPLATES.map(t=>t.id),['signal','retro-grid','lofi-player','cover-focus']);
+  assert.equal(new Set(TEMPLATES.map(t=>t.id)).size,TEMPLATES.length);
+  for(const template of TEMPLATES)assert.equal(isTemplateId(template.id),true);
+  assert.equal(isTemplateId('unknown'),false);
+  assert.equal(validateMetadata({...base,templateId:'retro-grid',artist:'My Artist'}).artist,'My Artist');
+  assert.throws(()=>validateMetadata({...base,templateId:'<script>'}),/template/);
+  assert.throws(()=>validateMetadata({...base,artist:'a'.repeat(65)}),/artist/);
+  assert.throws(()=>validateMetadata({...base,artist:'\n'}),/artist/);
+});
+test('Cover upload accepts PNG/JPEG/WebP signature only',()=>{
+  const png=Buffer.from([137,80,78,71,13,10,26,10,0,0,0,0,0]);
+  assert.equal(validateCover(png,'.png','image/png'),true);
+  assert.equal(validateCover(png,'.jpg','image/jpeg'),false);
+  assert.equal(validateCover(png,'.png','image/svg+xml'),false);
+  const jpg=Buffer.from([255,216,255,...Array(12).fill(0)]);
+  assert.equal(validateCover(jpg,'.jpeg','image/jpeg'),true);
+  const webp=Buffer.from('RIFF0000WEBP0');
+  assert.equal(validateCover(webp,'.webp','image/webp'),true);
+});
+test('Export forwards validated template, artist and local cover reference',async()=>{
+  const png=Buffer.from([137,80,78,71,13,10,26,10,0,0,0,0,0]);
+  // Server mock reads props just before its fake MP4 response.
+  const form=new FormData();
+  form.append('audio',new Blob([audio],{type:'audio/wav'}),'sound.wav');
+  form.append('props',JSON.stringify({...base,templateId:'lofi-player',artist:'A+B'}));
+  form.append('cover',new Blob([png],{type:'image/png'}),'my-cover.png');
+  const response=await fetch('http://127.0.0.1:8787/api/export',
+    {method:'POST',headers:{Origin:ORIGIN},body:form});
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('content-type'),'video/mp4');
+  assert.equal(lastExportProps.templateId,'lofi-player');
+  assert.equal(lastExportProps.artist,'A+B');
+  assert.match(lastExportProps.coverSrc,/^static:render-uploads\/job-[\w-]+\/cover\.png$/);
+});
+test('Invalid cover mimetype is rejected',async()=>{
+  const png=Buffer.from([137,80,78,71,13,10,26,10,0,0,0,0,0]);
+  const response=await request({cover:{bytes:png,type:'image/svg+xml',filename:'art.svg'}});
+  assert.equal(response.status,400);
 });

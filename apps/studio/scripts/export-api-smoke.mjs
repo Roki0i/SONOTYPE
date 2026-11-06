@@ -12,7 +12,7 @@ const measured=JSON.parse(await readFile(join(root,'apps/studio/public/demo-anal
 const count=240;
 const form=new FormData();
 form.append('audio',new Blob([demo],{type:'audio/wav'}),'demo.wav');
-form.append('props',JSON.stringify({title:'CI CUSTOM AUDIO',theme:'violet',seconds:8,
+form.append('props',JSON.stringify({title:'CI CUSTOM AUDIO',artist:'CI ARTIST',templateId:'retro-grid',theme:'violet',seconds:8,
   notes:[{time:0,pitch:74,duration:.42}],
   levels:measured.levels.slice(0,count),
   spectrum:measured.spectrum.slice(0,count),
