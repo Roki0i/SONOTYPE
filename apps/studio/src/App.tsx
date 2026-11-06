@@ -42,7 +42,7 @@ export function App(){
 
   async function setAudio(file?:File){
     if(!file)return;
-    if(file.size>25*1024*1024||!/\\.(wav|mp3|m4a|aac|ogg)$/i.test(file.name)){
+    if(file.size>25*1024*1024||!/\.(wav|mp3|m4a|aac|ogg)$/i.test(file.name)){
       setStatus('音声はWAV / MP3 / M4A / AAC / OGG、25MiB以内にしてください');return;
     }
     setLoading(true);
@@ -53,7 +53,7 @@ export function App(){
       uploaded.current=url;
       audioFile.current=file;
       setSource(url);
-      setTitle(file.name.replace(/\\.[^.]+$/,'').replace(/[\\x00-\\x1f]/g,' ').slice(0,64));
+      setTitle(file.name.replace(/\.[^.]+$/,'').replace(/[\x00-\x1f]/g,' ').slice(0,64));
       setAnalysis(measured);
       setNotes([]);
       setStatus('音声を解析しました。MIDIを入れると音程も表示できます。');
@@ -62,7 +62,7 @@ export function App(){
   }
   function setCover(file?:File){
     if(!file)return;
-    if(file.size>MAX_COVER|| !/\\.(png|jpe?g|webp)$/i.test(file.name) ||
+    if(file.size>MAX_COVER|| !/\.(png|jpe?g|webp)$/i.test(file.name) ||
       !['image/png','image/jpeg','image/webp'].includes(file.type)){
       setStatus('ジャケット画像はPNG / JPEG / WebP、5MiB以内にしてください');return;
     }
