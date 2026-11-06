@@ -1,6 +1,5 @@
 import {createServer} from 'node:http';
-import {Readable} from 'node:stream';
-import {randomUUID} from 'node:crypto';
+import {isTemplateId} from '../src/templates.mjs';
 import {mkdtemp, mkdir, readFile, rm, writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
 import {spawn} from 'node:child_process';
@@ -14,7 +13,8 @@ const BOUND_HOST = '127.0.0.1';
 const BOUND_PORT = 8787;
 const ALLOWED_ORIGIN = 'http://127.0.0.1:5173';
 const MAX_AUDIO = 25 * 1024 * 1024;
-const MAX_BODY = 27 * 1024 * 1024;
+const MAX_BODY = 33 * 1024 * 1024;
+const MAX_COVER = 5 * 1024 * 1024;
 const MAX_MP4 = 160 * 1024 * 1024;
 const EXTENSIONS = new Set(['.wav', '.mp3', '.m4a', '.aac', '.ogg']);
 const THEMES = new Set(['arctic', 'mint', 'violet']);
@@ -22,10 +22,12 @@ const DURATIONS = new Set([8, 15, 30]);
 
 export function validateMetadata(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Error('Invalid props');
-  const {title, theme, seconds, levels, spectrum, bands, notes} = raw;
+  const {title, artist = '', templateId = 'signal', theme, seconds, levels, spectrum, bands, notes} = raw;
   if (typeof title !== 'string' || title.length < 1 || title.length > 64 || /[\x00-\x1f]/.test(title)) {
     throw Error('Invalid title');
   }
+  if (typeof artist !== 'string' || artist.length > 64 || /[\x00-\x1f]/.test(artist)) throw Error('Invalid artist');
+  if (!isTemplateId(templateId)) throw Error('Invalid template');
   if (!THEMES.has(theme) || !DURATIONS.has(seconds)) throw Error('Invalid theme or duration');
   if (!Array.isArray(levels) || levels.length !== seconds * 30 ||
     !levels.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1)) {
@@ -42,7 +44,7 @@ export function validateMetadata(raw) {
       n.time <= 3600 && Number.isFinite(n.duration) && n.duration > 0 && n.duration <= 120)) {
     throw Error('Invalid MIDI notes');
   }
-  return {title, theme, seconds, levels, spectrum, bands, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
+  return {title, artist, templateId, theme, seconds, levels, spectrum, bands, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
 }
 
 export function validateAudio(bytes, extension) {
@@ -53,6 +55,21 @@ export function validateAudio(bytes, extension) {
   if (extension === '.m4a') return ascii(4,4)==='ftyp';
   if (extension === '.mp3') return ascii(0,3)==='ID3' || (bytes[0]===255 && (bytes[1]&224)===224);
   if (extension === '.aac') return bytes[0]===255 && (bytes[1]&246)===240;
+  return false;
+}
+
+
+export function validateCover(bytes, extension, mimeType) {
+  if (bytes.length < 12 || bytes.length > MAX_COVER) return false;
+  if (extension === '.png' && mimeType === 'image/png') {
+    return bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
+  }
+  if ((extension === '.jpg' || extension === '.jpeg') && mimeType === 'image/jpeg') {
+    return bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+  }
+  if (extension === '.webp' && mimeType === 'image/webp') {
+    return bytes.toString('ascii',0,4) === 'RIFF' && bytes.toString('ascii',8,12) === 'WEBP';
+  }
   return false;
 }
 
@@ -80,6 +97,7 @@ async function parseForm(request) {
   const form=await req.formData();
   const audio=form.get('audio');
   const rawProps=form.get('props');
+  const cover=form.get('cover');
   if (!(audio instanceof Blob) || typeof rawProps !== 'string' || rawProps.length > 500000) {
     throw Error('Invalid upload fields');
   }
@@ -87,7 +105,15 @@ async function parseForm(request) {
   const extension=extname(name).toLowerCase();
   const bytes=Buffer.from(await audio.arrayBuffer());
   if (!validateAudio(bytes,extension)) throw Error('Unsupported or invalid audio file');
-  return {bytes,extension,metadata:validateMetadata(JSON.parse(rawProps))};
+  let coverBytes=null, coverExtension=null;
+  if (cover !== null) {
+    if (!(cover instanceof Blob) || cover.size > MAX_COVER) throw Error('Invalid cover image');
+    const coverName=typeof cover.name==='string'?cover.name:'';
+    coverExtension=extname(coverName).toLowerCase();
+    coverBytes=Buffer.from(await cover.arrayBuffer());
+    if (!validateCover(coverBytes,coverExtension,cover.type)) throw Error('Unsupported cover format');
+  }
+  return {bytes,extension,coverBytes,coverExtension,metadata:validateMetadata(JSON.parse(rawProps))};
 }
 
 function cliPath(){
@@ -140,17 +166,20 @@ export function makeExportServer({render=cliRender}={}){
     let uploadDir=null;
     let workDir=null;
     try{
-      const {bytes,extension,metadata}=await parseForm(req);
+      const {bytes,extension,coverBytes,coverExtension,metadata}=await parseForm(req);
       await mkdir(UPLOADS,{recursive:true});
       uploadDir=await mkdtemp(join(UPLOADS,'job-'));
       workDir=await mkdtemp(join(tmpdir(),'oto-render-'));
       const fileName='audio'+extension;
       await writeFile(join(uploadDir,fileName),bytes,{mode:0o600});
       const relative=uploadDir.slice(UPLOADS.length+1).replaceAll('\\','/');
+      if (coverBytes && coverExtension) await writeFile(join(uploadDir,'cover'+coverExtension),coverBytes,{mode:0o600});
       const props={
-        title:metadata.title,theme:metadata.theme,notes:metadata.notes,levels:metadata.levels,
+        title:metadata.title,artist:metadata.artist,templateId:metadata.templateId,
+        theme:metadata.theme,notes:metadata.notes,levels:metadata.levels,
         spectrum:metadata.spectrum,bands:metadata.bands,
-        audioSrc:'static:render-uploads/'+relative+'/'+fileName
+        audioSrc:'static:render-uploads/'+relative+'/'+fileName,
+        coverSrc:coverExtension?'static:render-uploads/'+relative+'/cover'+coverExtension:''
       };
       const propsPath=join(workDir,'props.json');
       const outputPath=join(workDir,'output.mp4');
