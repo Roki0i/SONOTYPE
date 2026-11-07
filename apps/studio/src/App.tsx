@@ -240,7 +240,7 @@ export function App(){
   }
   async function removeSavedProject(){
     if(loading||exporting||saving)return;
-    if(!window.confirm('このブラウザに保存したOTOプロジェクトを削除しますか？編集画面の内容はそのまま残ります。'))return;
+    if(!window.confirm('このブラウザに保存したSONOTYPEプロジェクトを削除しますか？編集画面の内容はそのまま残ります。'))return;
     setSaving(true);
     try{await clearProject();setStatus('このブラウザの保存データを削除しました。');}
     catch(error){setStatus(error instanceof Error?error.message:'削除に失敗しました');}
@@ -252,8 +252,8 @@ export function App(){
   return <div className="app-shell">
     <aside className="templates-sidebar">
       <div className="brand">
-        <div className="brand-mark">O<span>∿</span></div>
-        <div><strong>OTO STUDIO</strong><small>CREATE MUSIC VISUALS</small></div>
+        <div className="brand-mark" aria-hidden="true">≋</div>
+        <div><strong>SONOTYPE</strong><small>CREATE MUSIC VISUALS</small></div>
       </div>
       <div className="sidebar-intro">
         <span className="eyebrow">STEP 01 — PICK A LOOK</span>
@@ -266,7 +266,7 @@ export function App(){
             onClick={()=>setTemplateId(entry.id)} aria-pressed={templateId===entry.id}
             className={'template-card'+(templateId===entry.id?' selected':'')}>
             <div className={'template-thumbnail thumb-'+entry.id}>
-              <span className="thumb-kicker">{String(i+1).padStart(2,'0')} / OTO</span>
+              <span className="thumb-kicker">{String(i+1).padStart(2,'0')} / SONOTYPE</span>
               <span className="thumb-emblem">{entry.id==='signal'?'▥▥▥':entry.id==='retro-grid'?'▣ ▦':entry.id==='lofi-player'?'◎':entry.id==='dopa-rush'?'▣▰':'◉'}</span>
               <span className="thumb-barlines"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></span>
             </div>
