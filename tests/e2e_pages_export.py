@@ -73,6 +73,13 @@ def main():
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 try:
                     page.goto(URL,wait_until='networkidle',timeout=90000)
+                    assert page.locator('.oto-hero').is_visible()
+                    assert page.locator('button.oto-home-template').count()==5
+                    # A new visitor sees a discoverable homepage before entering the editor.
+                    page.set_viewport_size({'width':390,'height':844})
+                    assert page.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth")<=2
+                    page.set_viewport_size({'width':1440,'height':900})
+                    page.locator('button.oto-main-cta').first.click()
                     assert page.locator('button.template-card').count()==5
                     assert page.locator('button.platform-option').count()==3
                     assert page.locator('text=ブラウザ制作').count()>0
@@ -101,6 +108,17 @@ def main():
                     page.locator('input[aria-label="ジャケット画像を選択"]').set_input_files(
                         {'name':'cover.png','mimeType':'image/png','buffer':test_png()})
                     page.locator('#song-title').fill('WEB EXPORT TEST')
+                    page.get_by_role('button',name='保存',exact=True).click()
+                    page.get_by_role('status').filter(has_text='保存しました').wait_for(timeout=12000)
+                    # Verify media Files persist (not merely text settings).
+                    page.reload(wait_until='networkidle',timeout=90000)
+                    assert page.locator('button.template-card').count()==5
+                    page.get_by_role('button',name='復元',exact=True).click()
+                    page.get_by_role('status').filter(has_text='復元しました').wait_for(timeout=60000)
+                    assert page.locator('#song-title').input_value()=='WEB EXPORT TEST'
+                    assert 'reference.wav' in page.locator('.upload-name').first.inner_text()
+                    assert page.locator('#clip-start').input_value()=='240'
+                    assert page.locator('button.template-card').last.get_attribute('aria-pressed')=='true'
                     page.locator("button.settings-tab").nth(1).click()
                     page.locator("button.settings-tab").first.click()
                     assert page.locator('#song-title').input_value() == 'WEB EXPORT TEST'

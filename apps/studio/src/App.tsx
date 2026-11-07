@@ -8,6 +8,8 @@ import {trimAnalysis} from './signal-analysis.mjs';
 import type {SceneProps, Theme, Note} from './remotion/types';
 import {decodeAudio, analyzeAudioSegment} from './audio-analysis';
 import {readMidi} from './midi';
+import {LandingPage} from './LandingPage';
+import {saveProject,loadProject,clearProject} from './project-storage';
 
 const FPS=30;
 const THEMES:Theme[]=['arctic','mint','violet'];
@@ -21,6 +23,8 @@ const formatSeconds=(seconds:number)=>{
 };
 
 export function App(){
+  const [page,setPage]=useState<'home'|'editor'>(()=>
+    window.location.hash==='#editor'?'editor':'home');
   const [templateId,setTemplateId]=useState<TemplateId>('retro-grid');
   const [theme,setTheme]=useState<Theme>('arctic');
   const [seconds,setSeconds]=useState(15);
@@ -39,10 +43,21 @@ export function App(){
   const [status,setStatus]=useState('デモ音源を使用中。テンプレートと文字を編集できます。');
   const [loading,setLoading]=useState(false);
   const [exporting,setExporting]=useState(false);
+  const [saving,setSaving]=useState(false);
   const uploaded=useRef<string|null>(null);
   const coverUrl=useRef<string|null>(null);
   const audioFile=useRef<File|null>(null);
   const coverFile=useRef<File|null>(null);
+  useEffect(()=>{
+    const sync=()=>setPage(window.location.hash==='#editor'?'editor':'home');
+    window.addEventListener('hashchange',sync);
+    return ()=>window.removeEventListener('hashchange',sync);
+  },[]);
+  const goTo=(view:'home'|'editor')=>{
+    window.location.hash=view;
+    setPage(view);
+    window.scrollTo(0,0);
+  };
   useEffect(()=>()=> {
     if(uploaded.current)URL.revokeObjectURL(uploaded.current);
     if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
@@ -174,6 +189,66 @@ export function App(){
     finally{setExporting(false);}
   }
 
+
+  async function saveCurrentProject(){
+    if(loading||exporting||saving)return;
+    setSaving(true);
+    try{
+      await saveProject({
+        version:1,updatedAt:Date.now(),
+        settings:{title,artist,templateId,theme,
+          seconds:seconds as 8|15|30,platform,startFrame:selectedStartFrame},
+        notes,audio:audioFile.current,cover:coverFile.current
+      });
+      setStatus('音源・画像と編集設定をこのブラウザに保存しました。');
+    }catch(error){
+      setStatus(error instanceof Error?'保存に失敗しました: '+error.message:'保存に失敗しました');
+    }finally{setSaving(false);}
+  }
+  async function restoreSavedProject(){
+    if(loading||exporting||saving)return;
+    setSaving(true);
+    setLoading(true);
+    try{
+      const saved=await loadProject();
+      if(!saved){setStatus('保存済みプロジェクトがありません。');return;}
+      const decoded=saved.audio?await decodeAudio(saved.audio):null;
+      const newSource=saved.audio?URL.createObjectURL(saved.audio):DEMO_AUDIO_URL;
+      const newCover=saved.cover?URL.createObjectURL(saved.cover):'';
+      if(uploaded.current)URL.revokeObjectURL(uploaded.current);
+      if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
+      uploaded.current=saved.audio?newSource:null;
+      coverUrl.current=saved.cover?newCover:null;
+      audioFile.current=saved.audio;
+      coverFile.current=saved.cover;
+      setSource(newSource);
+      setCoverSrc(newCover);
+      setDecodedAudio(decoded);
+      setSourceDuration(decoded?.duration??DEMO_DURATION);
+      setNotes(saved.notes);
+      setTitle(saved.settings.title);
+      setArtist(saved.settings.artist);
+      setTemplateId(saved.settings.templateId);
+      setTheme(saved.settings.theme);
+      setSeconds(saved.settings.seconds);
+      setPlatform(saved.settings.platform);
+      setStartFrame(saved.settings.startFrame);
+      setStatus('音源・画像・編集内容を復元しました。');
+    }catch(error){
+      setStatus(error instanceof Error?'復元に失敗しました: '+error.message:'復元に失敗しました');
+    }finally{setLoading(false);setSaving(false);}
+  }
+  async function removeSavedProject(){
+    if(loading||exporting||saving)return;
+    if(!window.confirm('このブラウザに保存したOTOプロジェクトを削除しますか？編集画面の内容はそのまま残ります。'))return;
+    setSaving(true);
+    try{await clearProject();setStatus('このブラウザの保存データを削除しました。');}
+    catch(error){setStatus(error instanceof Error?error.message:'削除に失敗しました');}
+    finally{setSaving(false);}
+  }
+  if(page==='home')return <LandingPage onStart={()=>goTo('editor')}
+    onPick={id=>{setTemplateId(id);goTo('editor');}}/>;
+
   return <div className="app-shell">
     <aside className="templates-sidebar">
       <div className="brand">
@@ -202,12 +277,13 @@ export function App(){
             <span className="template-description">{entry.description}</span>
           </button>)}
       </div>
-      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v0.9</span></div>
+      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v1.0</span></div>
     </aside>
 
     <main className="editor-stage">
       <header className="editor-topbar">
-        <div><span className="eyebrow">MUSIC VISUAL CREATOR</span><h1>音楽を、見せる。</h1></div>
+        <div><button className="back-to-home" type="button" onClick={()=>goTo('home')}>← ホームへ</button>
+          <span className="eyebrow">MUSIC VISUAL CREATOR</span><h1>音楽を、見せる。</h1></div>
         <span className="workspace-status"><span className="status-dot"/>{IS_PAGES?'ブラウザ制作':'ローカル制作'}</span>
       </header>
       <div className="canvas-area">
@@ -245,6 +321,13 @@ export function App(){
 
     <aside className="settings-sidebar">
       <div className="settings-header"><span className="eyebrow">STEP 02 — MAKE IT YOURS</span><h2>カスタマイズ</h2></div>
+      <div className="project-actions" aria-label="ローカルプロジェクト">
+        <button type="button" onClick={()=>void saveCurrentProject()} disabled={loading||exporting||saving}>保存</button>
+        <button type="button" onClick={()=>void restoreSavedProject()} disabled={loading||exporting||saving}>復元</button>
+        <button className="project-clear" type="button" onClick={()=>void removeSavedProject()}
+          disabled={loading||exporting||saving} aria-label="保存済みのプロジェクトを削除">削除</button>
+        <p>音源・ジャケットもこのブラウザ内に保存。別の端末には同期されません。</p>
+      </div>
       <div className="settings-tabs" role="group" aria-label="設定カテゴリー">
         <button type="button" className={'settings-tab'+(settingsTab==='content'?' active':'')}
           aria-pressed={settingsTab==='content'} aria-controls="settings-content"

@@ -109,6 +109,9 @@ def main():
                 page.on("pageerror", lambda e: errors.append(str(e)))
                 try:
                     page.goto(URL, wait_until="networkidle", timeout=90000)
+                    assert page.locator(".oto-hero").is_visible()
+                    assert page.locator("button.oto-home-template").count() == 5
+                    page.locator("button.oto-main-cta").first.click()
                     cards = page.locator("button.template-card")
                     assert cards.count() == 5, "Expected five template options"
 
@@ -141,6 +144,11 @@ def main():
                     assert not page.locator("#settings-style").is_visible()
                     page.locator("#song-title").fill("CI TEST TRACK")
                     page.locator("#artist-name").fill("CI TEST ARTIST")
+                    page.get_by_role("button", name="保存", exact=True).click()
+                    page.get_by_role("status").filter(has_text="保存しました").wait_for(timeout=12000)
+                    page.get_by_role("button", name="復元", exact=True).click()
+                    page.get_by_role("status").filter(has_text="復元しました").wait_for(timeout=60000)
+                    assert page.locator("#song-title").input_value()=="CI TEST TRACK"
                     # Preview width is user adjustable, without changing composition dimensions.
                     sizes = page.locator("button.preview-zoom-button")
                     assert sizes.count() == 3
