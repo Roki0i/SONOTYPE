@@ -10,11 +10,11 @@ export function LandingPage({onStart,onPick}:Props){
   return <div className="oto-home">
     <header className="oto-home-nav">
       <a className="oto-home-logo" href="#home" aria-label="OTO Studio ホーム">
-        <span className="oto-home-symbol">O∿</span><strong>OTO <span>STUDIO</span></strong>
+        <span className="oto-home-symbol" aria-hidden="true">O∿</span>
+        <strong>OTO <span>STUDIO</span></strong>
       </a>
       <nav aria-label="ページ内ナビゲーション">
-        <a href="#oto-templates">テンプレート</a>
-        <a href="#oto-guide">使い方</a>
+        <a href="#oto-templates">スタイル</a>
         <button type="button" className="oto-nav-cta" onClick={onStart}>編集する <span aria-hidden="true">↗</span></button>
       </nav>
     </header>
@@ -22,70 +22,69 @@ export function LandingPage({onStart,onPick}:Props){
     <main>
       <section className="oto-hero" aria-labelledby="oto-hero-title">
         <div className="oto-hero-copy">
-          <p className="oto-hero-eyebrow"><span className="oto-live-dot"/> FREE WEB CREATOR · 9:16 MUSIC VISUALS</p>
-          <h1 id="oto-hero-title">あなたの音楽に、<br/><em>映える映像を。</em></h1>
-          <p className="oto-hero-lead">音源を読み込んで、テンプレートを選ぶだけ。ビートに反応する縦型動画をブラウザで作成し、MP4で保存できます。</p>
+          <p className="oto-hero-eyebrow">MUSIC INTO MOTION</p>
+          <h1 id="oto-hero-title">音を、<br/><em>映像に。</em></h1>
+          <p className="oto-hero-lead">音楽から、縦型ミュージックビデオを。<br/>ブラウザで編集して、MP4で保存。</p>
           <div className="oto-hero-actions">
-            <button type="button" onClick={onStart} className="oto-main-cta">無料で動画をつくる <span aria-hidden="true">↗</span></button>
-            
+            <button type="button" onClick={onStart} className="oto-main-cta">動画をつくる <span aria-hidden="true">↗</span></button>
+            <a className="oto-text-link" href="#oto-templates">スタイルを見る <span aria-hidden="true">↓</span></a>
           </div>
-          <p className="oto-hero-fine">アカウント登録不要 · Shorts / Reels / TikTok向け · PC版Chrome/Edgeで動作確認済み</p>
+          <p className="oto-hero-fine">登録不要 · Shorts / Reels / TikTok</p>
         </div>
-        <div className="oto-hero-stage" aria-label="制作できるショート動画のデザインイメージ">
-          <div className="oto-stage-halo"/>
-          <div className="oto-phone-preview">
-            <div className="oto-phone-topline"><span>OTO / VISUAL</span><span>PLAYING ●</span></div>
-            <div className="oto-phone-art">
-              <span>YOUR<br/>TRACK.</span>
-              <div className="oto-art-orbit oto-art-orbit-a"/><div className="oto-art-orbit oto-art-orbit-b"/>
+        <div className="oto-hero-stage" aria-label="制作イメージ">
+          <div className="oto-art-frame" aria-hidden="true">
+            <div className="oto-art-inner">
+              <div className="oto-art-top"><span>OTO / 001</span><span>◉ REC</span></div>
+              <div className="oto-art-disc"><div className="oto-art-disc-core"/></div>
+              <div className="oto-art-title">SOUND<br/>IN MOTION.</div>
+              <div className="oto-art-wave">{Array.from({length:20},(_,i)=><i key={i} style={{height:(16+(i*37%76))+'%'}}/>)}</div>
+              <div className="oto-art-bottom"><span>YOUR MUSIC, VISUALIZED.</span><span>00:15</span></div>
             </div>
-            <div className="oto-phone-category">DOPA RUSH / 001</div>
-            <div className="oto-phone-song">MAKE IT<br/>LOUD.</div>
-            <div className="oto-phone-bands">{Array.from({length:25},(_,i)=>
-              <i key={i} style={{height:(14+(i*31%57))+'%'}}/>)}</div>
-            <div className="oto-phone-track"><i/></div>
           </div>
-          <div className="oto-stage-sticker oto-sticker-top">1080 × 1920<br/>30 FPS</div>
-          <div className="oto-stage-sticker oto-sticker-bottom">AUDIO REACTIVE ↗</div>
+          <span className="oto-art-side-note" aria-hidden="true">9:16 / VISUAL STUDIO</span>
         </div>
       </section>
 
-      <section className="oto-home-section" id="oto-templates">
+      <div className="oto-specs" aria-label="制作機能">
+        <span>5 STYLES</span><span>9:16 VIDEO</span><span>MP4 EXPORT</span><span>PROJECT SAVE</span>
+      </div>
+
+      <section className="oto-home-section" id="oto-templates" aria-labelledby="oto-templates-heading">
         <div className="oto-section-header">
-          <div><p className="oto-section-eyebrow">01 / DESIGN</p><h2>曲に合うスタイルを選ぼう。</h2></div>
-          <p>好みのテンプレートから編集を開始できます。</p>
+          <p className="oto-section-eyebrow">01 / STYLES</p>
+          <h2 id="oto-templates-heading">スタイルを選ぶ。</h2>
         </div>
         <div className="oto-home-gallery">
           {TEMPLATES.map((t,i)=><button className={'oto-home-template oto-home-template-'+t.id} key={t.id}
-            type="button" onClick={()=>onPick(t.id)}>
-            <span className="oto-home-template-art"><span className="oto-card-no">{String(i+1).padStart(2,'0')} / 05</span>
-              <span className="oto-card-signal">{t.id==='signal'?'▥ ▥ ▥':t.id==='retro-grid'?'▣ ▦':t.id==='lofi-player'?'◎':t.id==='dopa-rush'?'RUSH!':'◉'}</span>
-              <span className="oto-card-note">CLICK TO EDIT ↗</span>
+            type="button" onClick={()=>onPick(t.id)} aria-label={t.name+'で編集を始める'}>
+            <span className="oto-home-template-art" aria-hidden="true">
+              <span className="oto-card-no">{String(i+1).padStart(2,'0')}</span>
+              <span className="oto-card-signal">{t.id==='signal'?'▥ ▥ ▥':t.id==='retro-grid'?'▣ ▦':t.id==='lofi-player'?'◎':t.id==='dopa-rush'?'RUSH':'◉'}</span>
+              <span className="oto-card-action">↗</span>
             </span>
             <span className="oto-home-template-text"><strong>{t.name}</strong><small>{t.category}</small></span>
-            <span className="oto-home-template-summary">{t.description}</span>
           </button>)}
         </div>
       </section>
 
-      <section className="oto-guide" id="oto-guide">
+      <section className="oto-guide" aria-labelledby="oto-guide-heading">
         <div className="oto-section-header">
-          <div><p className="oto-section-eyebrow">02 / WORKFLOW</p><h2>編集は、たった3ステップ。</h2></div>
+          <p className="oto-section-eyebrow">02 / CREATE</p>
+          <h2 id="oto-guide-heading">3ステップで完成。</h2>
         </div>
         <div className="oto-guide-grid">
-          <article><span className="oto-step-no">01</span><h3>音楽をアップロード</h3><p>WAVやMP3などの音源と、任意のジャケット画像を選択。使いたい開始位置を指定できます。</p></article>
-          <article><span className="oto-step-no">02</span><h3>デザインを編集</h3><p>テンプレート・色・曲名・投稿先・8/15/30秒の尺を選択。再生プレビューで確認できます。</p></article>
-          <article><span className="oto-step-no">03</span><h3>MP4で保存</h3><p>ブラウザ内で音声付きMP4を生成。端末のメディアプレイヤーで再生できます。</p></article>
+          <div><span>01</span><strong>音源を選ぶ</strong></div>
+          <div><span>02</span><strong>デザインする</strong></div>
+          <div><span>03</span><strong>MP4で保存</strong></div>
         </div>
+        <p className="oto-guide-note">編集内容はブラウザ内に保存・復元できます。</p>
+        <button className="oto-main-cta" type="button" onClick={onStart}>編集を始める <span aria-hidden="true">↗</span></button>
       </section>
-
-
     </main>
+
     <footer className="oto-home-footer">
-      <p className="oto-footer-privacy">制作時の音源・画像はブラウザ内で処理。保存データはこの端末だけに残り、サイトデータ削除で失われる場合があります。Remotionのテレメトリ通信が発生することがあります。</p>
-      <div><span>© OTO STUDIO</span>
-        <a href="https://github.com/Roki0i/oto-signal-studio" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-      </div>
+      <div><strong>OTO STUDIO</strong><p>音源・画像はブラウザで処理。保存データはサイトデータ削除で消える場合があります。外部テレメトリ通信が発生する場合があります。</p></div>
+      <a href="https://github.com/Roki0i/oto-signal-studio" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </footer>
   </div>;
 }
