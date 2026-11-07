@@ -1,0 +1,76 @@
+.oto-home{min-height:100vh;background:#090e19;color:#f4f7fd;font-family:'Space Grotesk',Inter,'Noto Sans JP',system-ui,sans-serif;overflow-x:hidden}
+.oto-home a{color:inherit;text-decoration:none}
+.oto-home button{font:inherit}
+.oto-home-nav{max-width:1420px;margin:auto;padding:24px clamp(24px,5vw,68px);display:flex;align-items:center;justify-content:space-between;gap:24px}
+.oto-home-logo{display:flex;align-items:center;gap:12px;font-size:21px;letter-spacing:.07em}
+.oto-home-logo strong span{font-weight:500;color:#9fb3c8}
+.oto-home-symbol{font-size:25px;display:grid;place-items:center;background:#b7f762;color:#10221d;border-radius:13px;width:48px;height:48px;font-weight:900}
+.oto-home-nav nav{display:flex;align-items:center;gap:30px;font-size:13px;font-weight:700;color:#bbc9d9}
+.oto-home-nav nav a:hover,.oto-home-footer a:hover{color:#b7f762}
+.oto-nav-cta{border:1px solid #86a7bd62;background:#182735;color:#e8f5fa;padding:12px 18px;border-radius:9px;font-weight:750}
+.oto-nav-cta:hover{background:#2c4353}
+.oto-hero{max-width:1420px;min-height:670px;margin:auto;padding:50px clamp(24px,5vw,68px) 70px;display:grid;grid-template-columns:minmax(0,1.03fr) minmax(300px,.97fr);gap:40px;align-items:center}
+.oto-hero-copy{position:relative;z-index:1}
+.oto-hero-eyebrow,.oto-section-eyebrow{font-size:12px;letter-spacing:.18em;font-weight:800;color:#b7f762}
+.oto-hero-eyebrow{display:flex;align-items:center;gap:10px}
+.oto-live-dot{display:inline-block;width:9px;height:9px;background:#b7f762;border-radius:50%;box-shadow:0 0 13px #b7f762}
+.oto-hero h1{font-size:clamp(42px,5.2vw,78px);font-weight:850;letter-spacing:-.07em;line-height:1.25;margin:28px 0;color:#f5f9ff}
+.oto-hero h1 em{font-style:normal;color:#b7f762}
+.oto-hero-lead{max-width:570px;color:#a7b9cc;font-size:17px;line-height:2}
+.oto-hero-actions{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:32px}
+.oto-main-cta{border:0;border-radius:11px;background:#b7f762;color:#12211e;font-size:15px;font-weight:850;padding:17px 24px;display:inline-flex;justify-content:space-between;align-items:center;gap:40px;box-shadow:0 12px 35px #9dde3523}
+.oto-main-cta:hover{background:#d1ff91;transform:translateY(-1px)}
+.oto-text-link{font-size:13px;font-weight:700;color:#d6e2ed}
+.oto-hero-fine{color:#708aa2;font-size:11px;line-height:1.7;margin-top:24px}
+.oto-hero-stage{position:relative;min-height:530px;display:grid;place-items:center;isolation:isolate}
+.oto-stage-halo{position:absolute;width:min(110%,620px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#604cfd78,#6d37d517 55%,transparent 72%);filter:blur(28px)}
+.oto-phone-preview{width:min(275px,85%);aspect-ratio:9/16;padding:19px;background:linear-gradient(150deg,#11142d,#310c53 55%,#07121e);box-shadow:20px 28px 0 #18263d,0 24px 90px #531caf87;position:relative;z-index:1;border:1px solid #8d86f254;transform:rotate(6deg);display:flex;flex-direction:column;overflow:hidden}
+.oto-phone-topline{display:flex;justify-content:space-between;font-size:8px;letter-spacing:.12em;color:#e7d7fd;font-weight:800}
+.oto-phone-art{height:56%;border:3px solid #b7f762;margin:24px 7px 22px;box-shadow:9px 9px 0 #ff5fc8;background:radial-gradient(circle at 65% 28%,#a5ddff,#6049d4 35%,#160b28 69%);position:relative;display:grid;place-items:center;overflow:hidden}
+.oto-phone-art>span{font-size:53px;font-weight:900;line-height:.95;color:#e0fbff;text-shadow:3px 4px 0 #35127e;z-index:2;transform:rotate(-10deg);letter-spacing:-.06em}
+.oto-art-orbit{position:absolute;border:3px solid #ff5dcacc;border-radius:50%;width:250px;height:90px;transform:rotate(-42deg)}
+.oto-art-orbit-b{border-color:#b7f762aa;transform:rotate(53deg);width:220px;height:110px}
+.oto-phone-category{color:#b7f762;font-size:10px;font-weight:900;letter-spacing:.18em}
+.oto-phone-song{font-size:35px;line-height:.97;letter-spacing:-.07em;font-weight:950;margin-top:8px}
+.oto-phone-bands{display:flex;gap:4px;align-items:end;height:35px;margin-top:auto}
+.oto-phone-bands i{background:#b7f762;flex:1;opacity:.9;min-height:5px}
+.oto-phone-track{height:4px;background:#59708b55;margin-top:12px}.oto-phone-track i{display:block;width:58%;height:100%;background:#ff61c4}
+.oto-stage-sticker{position:absolute;z-index:2;background:#0e1d2e;color:#d6f6fc;padding:13px 16px;font-size:11px;font-weight:800;line-height:1.5;letter-spacing:.08em;border:1px solid #354969;box-shadow:0 16px 22px #0006}
+.oto-sticker-top{right:3%;top:15%;transform:rotate(-8deg)}
+.oto-sticker-bottom{left:4%;bottom:13%;transform:rotate(6deg);color:#b7f762}
+.oto-benefits{border-top:1px solid #26344a;border-bottom:1px solid #26344a;display:grid;grid-template-columns:repeat(4,1fr);max-width:1284px;margin:0 auto;background:#101827}
+.oto-benefits>div{display:flex;flex-direction:column;padding:24px 27px;border-right:1px solid #26344a;gap:6px}.oto-benefits>div:last-child{border:0}
+.oto-benefits strong{font-size:34px;color:#b7f762;letter-spacing:-.04em}
+.oto-benefits span{font-size:11px;line-height:1.6;color:#9fb4c6}
+.oto-home-section,.oto-guide,.oto-trust{max-width:1284px;margin:0 auto;padding:110px clamp(24px,4vw,55px)}
+.oto-section-header{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:32px}
+.oto-section-header h2,.oto-trust h2{font-size:clamp(27px,3vw,42px);margin:13px 0 0;letter-spacing:-.045em}
+.oto-section-header>p{max-width:330px;font-size:12px;line-height:1.85;color:#9cb1c3}
+.oto-home-gallery{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px}
+.oto-home-template{padding:8px;background:#162232;border:1px solid #334155;border-radius:13px;text-align:left;color:#edf6ff;min-width:0;transition:transform .15s,border-color .15s}
+.oto-home-template:hover{transform:translateY(-5px);border-color:#b7f762}
+.oto-home-template-art{aspect-ratio:9/12;position:relative;background:linear-gradient(130deg,#152e57,#18354e);border-radius:7px;display:grid;place-items:center;overflow:hidden}
+.oto-home-template-retro-grid .oto-home-template-art{background:linear-gradient(135deg,#8f8f8d,#202024)}
+.oto-home-template-lofi-player .oto-home-template-art{background:radial-gradient(circle,#7f7187,#151626 65%)}
+.oto-home-template-cover-focus .oto-home-template-art{background:linear-gradient(145deg,#b8f5f2,#b0a8e8)}
+.oto-home-template-dopa-rush .oto-home-template-art{background:linear-gradient(145deg,#4c27ac,#db319c)}
+.oto-card-no,.oto-card-note{position:absolute;left:12px;font-size:9px;letter-spacing:.09em;font-weight:800}
+.oto-card-no{top:12px}.oto-card-note{bottom:12px}
+.oto-card-signal{font-size:clamp(24px,3vw,45px);font-weight:950;letter-spacing:-.06em;text-shadow:2px 3px 0 #03081a66}
+.oto-home-template-text{display:flex;justify-content:space-between;gap:5px;padding:13px 4px 4px;align-items:center}
+.oto-home-template-text strong{font-size:14px}.oto-home-template-text small{font-size:9px;color:#accce0}
+.oto-home-template-summary{display:block;color:#9aadc0;font-size:11px;line-height:1.7;padding:4px}
+.oto-guide{border-top:1px solid #23344c}
+.oto-guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.oto-guide-grid article{background:#131e2d;border-radius:15px;padding:30px 28px;border:1px solid #23344a}
+.oto-step-no{font-size:39px;letter-spacing:-.06em;color:#b7f762;font-weight:850}
+.oto-guide-grid h3{font-size:19px;margin:25px 0 12px}
+.oto-guide-grid p{font-size:12px;line-height:2;color:#93a9bc}
+.oto-guide-action{margin-top:30px}
+.oto-trust{background:#111b2a;border-radius:18px;margin-bottom:78px;display:grid;grid-template-columns:1fr 1.25fr;gap:35px;align-items:center;padding-top:45px;padding-bottom:45px}
+.oto-trust>p{font-size:12px;line-height:2;color:#9aafc3}
+.oto-home-footer{max-width:1420px;margin:auto;padding:24px clamp(24px,5vw,68px) 40px;border-top:1px solid #293951;display:flex;justify-content:space-between;gap:20px;color:#91a5b7;font-size:11px}
+@media(max-width:1030px){.oto-home-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.oto-hero{grid-template-columns:1fr 1fr}.oto-phone-preview{width:225px}.oto-hero h1{font-size:clamp(39px,5vw,65px)}}
+@media(max-width:740px){.oto-home-nav{padding:16px}.oto-home-nav nav{gap:10px}.oto-home-nav nav a{display:none}.oto-nav-cta{padding:10px}.oto-hero{display:flex;flex-direction:column;padding:40px 23px 55px;gap:12px}.oto-hero-stage{width:100%;min-height:460px}.oto-phone-preview{width:215px}.oto-hero h1{font-size:clamp(37px,9vw,57px)}.oto-hero-lead{font-size:14px}.oto-benefits{grid-template-columns:repeat(2,1fr)}.oto-benefits>div:nth-child(2){border-right:0}.oto-benefits>div:nth-child(-n+2){border-bottom:1px solid #26344a}.oto-home-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.oto-home-section,.oto-guide{padding-top:65px;padding-bottom:65px}.oto-section-header{display:block}.oto-guide-grid{grid-template-columns:1fr}.oto-trust{margin:0 18px 45px;display:block;padding:25px}.oto-home-footer{flex-wrap:wrap}}
+@media(max-width:400px){.oto-home-template-text{display:block}.oto-home-template-text small{display:block;margin-top:4px}}
+@media(prefers-reduced-motion:reduce){.oto-main-cta:hover,.oto-home-template:hover{transform:none}}
