@@ -112,6 +112,6 @@ export async function loadProject():Promise<StoredProject|null>{
 export async function clearProject():Promise<void>{
   return transaction<void>('readwrite',(store,resolve)=>{
     const req=store.delete(KEY);
-    req.transaction.oncomplete=()=>resolve(undefined);
+    if(req.transaction)req.transaction.oncomplete=()=>resolve(undefined);
   });
 }
