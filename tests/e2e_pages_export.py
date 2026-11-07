@@ -5,6 +5,7 @@ by the test harness to validate the downloaded media container and codecs.
 """
 import json
 import os
+import re
 import signal
 import subprocess
 import time
@@ -12,6 +13,7 @@ import urllib.request
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+from e2e_studio_templates import test_png
 
 ROOT=Path(__file__).resolve().parents[1]
 STUDIO=ROOT/'apps'/'studio'
@@ -43,6 +45,12 @@ def inspect(path):
     assert (video['width'],video['height'])==(1080,1920)
     assert sound['codec_name']=='aac'
     assert path.stat().st_size>1000
+    measured=subprocess.run(['ffmpeg','-hide_banner','-i',str(path),
+        '-vn','-af','volumedetect','-f','null','-'],
+        text=True,capture_output=True,timeout=45,check=True)
+    value=re.search(r'mean_volume:\s*(-?[0-9.]+) dB',measured.stderr)
+    assert value is not None, 'Failed to decode exported AAC audio'
+    assert float(value.group(1))>-50, 'Rendered audio unexpectedly silent'
     return path.stat().st_size
 
 
@@ -71,6 +79,14 @@ def main():
                     assert page.evaluate("fetch('./demo.wav').then(r=>r.ok)")
                     page.locator('button.template-card').last.click()
                     page.locator('div.length-options button').first.click()
+                    # Verify that user-provided blob audio and artwork are supported
+                    # by web renderer, not only the bundled static demo.
+                    page.locator('input[aria-label="音楽ファイルを選択"]').set_input_files(
+                        {'name':'reference.wav','mimeType':'audio/wav',
+                         'buffer':(ROOT/'assets'/'demo.wav').read_bytes()})
+                    page.get_by_role('status').filter(has_text='音声を解析しました').wait_for(timeout=60000)
+                    page.locator('input[aria-label="ジャケット画像を選択"]').set_input_files(
+                        {'name':'cover.png','mimeType':'image/png','buffer':test_png()})
                     page.locator('#song-title').fill('WEB EXPORT TEST')
                     assert not errors, errors
                     with page.expect_download(timeout=270000) as download_info:
@@ -81,7 +97,7 @@ def main():
                     download.save_as(str(target))
                     size=inspect(target)
                     assert not errors, errors
-                    print(f'PAGES WEB MP4 PASS: {size} bytes H264/AAC 1080x1920')
+                    print(f'PAGES WEB MP4 PASS: uploaded WAV and PNG, {size} bytes H264/AAC 1080x1920 non-silent audio')
                 except Exception as error:
                     print('Pages E2E root cause:',repr(error),flush=True)
                     try:
