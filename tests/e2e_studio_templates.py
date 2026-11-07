@@ -3,6 +3,10 @@
 Requires Python Playwright/Chromium, Node 24 and FFmpeg. Runs on Linux CI.
 """
 import json
+import math
+import io
+import re
+import wave
 import os
 import signal
 import struct
@@ -36,6 +40,22 @@ def test_png():
     )
 
 
+def seek_wav():
+    """16s deterministic WAV: first 8s silent, second 8s 440Hz tone."""
+    rate=22050
+    pcm=bytearray(rate*16*2)
+    for sample in range(rate*8,rate*16):
+        value=int(math.sin(2*math.pi*440*(sample-rate*8)/rate)*12000)
+        struct.pack_into("<h",pcm,sample*2,value)
+    out=io.BytesIO()
+    with wave.open(out,"wb") as file:
+        file.setnchannels(1)
+        file.setsampwidth(2)
+        file.setframerate(rate)
+        file.writeframes(pcm)
+    return out.getvalue()
+
+
 def wait_for_server(proc, timeout=90):
     end = time.monotonic() + timeout
     while time.monotonic() < end:
@@ -62,6 +82,14 @@ def inspect_mp4(video_path):
     assert (video["width"], video["height"]) == (1080, 1920)
     assert audio["codec_name"] == "aac"
     assert video_path.stat().st_size > 1000
+    # The source first eight seconds are silence; a non-silent output proves
+    # Audio.trimBefore is applied in the rendered MP4 (not just its waveform).
+    measured=subprocess.run(
+        ["ffmpeg","-hide_banner","-i",str(video_path),"-vn","-af","volumedetect","-f","null","-"],
+        check=True,capture_output=True,text=True,timeout=45,
+    )
+    volume=re.search(r"mean_volume:\s*(-?[0-9.]+) dB",measured.stderr)
+    assert volume and float(volume.group(1))>-45, "Clip start ignored: exported AAC is silent"
     return video_path.stat().st_size
 
 
@@ -124,6 +152,15 @@ def main():
                     assert export_box is not None
                     assert export_box["y"] >= 0 and export_box["y"] + export_box["height"] <= 900
 
+                    page.locator('input[aria-label="音楽ファイルを選択"]').set_input_files(
+                        {"name":"seek.wav","mimeType":"audio/wav","buffer":seek_wav()})
+                    page.get_by_role("status").filter(has_text="音声を解析しました").wait_for(timeout=60000)
+                    slider=page.locator("#clip-start")
+                    assert slider.get_attribute("max")=="240"
+                    slider.focus()
+                    slider.press("End")
+                    assert slider.input_value()=="240"
+                    assert page.locator(".clip-positions").inner_text().find("0:08")>=0
                     page.locator('input[aria-label="ジャケット画像を選択"]').set_input_files(
                         {"name":"test-cover.png", "mimeType":"image/png", "buffer":test_png()}
                     )

@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
-from e2e_studio_templates import test_png
+from e2e_studio_templates import test_png, seek_wav
 
 ROOT=Path(__file__).resolve().parents[1]
 STUDIO=ROOT/'apps'/'studio'
@@ -90,8 +90,14 @@ def main():
                     # by web renderer, not only the bundled static demo.
                     page.locator('input[aria-label="音楽ファイルを選択"]').set_input_files(
                         {'name':'reference.wav','mimeType':'audio/wav',
-                         'buffer':(ROOT/'assets'/'demo.wav').read_bytes()})
+                         'buffer':seek_wav()})
                     page.get_by_role('status').filter(has_text='音声を解析しました').wait_for(timeout=60000)
+                    clip=page.locator('#clip-start')
+                    assert clip.get_attribute('max')=='240'
+                    clip.focus()
+                    clip.press('End')
+                    assert clip.input_value()=='240'
+                    assert '0:08' in page.locator('.clip-positions').inner_text()
                     page.locator('input[aria-label="ジャケット画像を選択"]').set_input_files(
                         {'name':'cover.png','mimeType':'image/png','buffer':test_png()})
                     page.locator('#song-title').fill('WEB EXPORT TEST')
@@ -114,7 +120,7 @@ def main():
                     download.save_as(str(target))
                     size=inspect(target)
                     assert not errors, errors
-                    print(f'PAGES WEB MP4 PASS: uploaded WAV and PNG, {size} bytes H264/AAC 1080x1920 non-silent audio')
+                    print(f'PAGES WEB MP4 PASS: trimmed 8s from source 0:08 (first 8s silent), uploaded WAV + PNG, {size} bytes H264/AAC 1080x1920 non-silent audio')
                 except Exception as error:
                     print('Pages E2E root cause:',repr(error),flush=True)
                     try:

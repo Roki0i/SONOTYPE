@@ -9,4 +9,4 @@ export interface AudioAnalysis {
 export declare function analyzePcm(
   samples: Float32Array, sampleRate: number, seconds: number, fps?: number
 ): AudioAnalysis;
-export declare function trimAnalysis(analysis: AudioAnalysis, count: number): AudioAnalysis;
+export declare function trimAnalysis(analysis: AudioAnalysis, count: number, offsetFrames?: number): AudioAnalysis;

@@ -5,6 +5,7 @@ export type SceneProps = {
   title:string;
   theme:Theme;
   audioSrc:string;
+  startFrame?:number;
   notes:Note[];
   levels:number[];
   spectrum:number[][];

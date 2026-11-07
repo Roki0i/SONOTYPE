@@ -123,11 +123,20 @@ export function analyzePcm(samples, sampleRate, seconds, fps = FPS) {
   return {levels, spectrum, bands};
 }
 
-export function trimAnalysis(analysis, count) {
-  if (!Number.isInteger(count) || count < 0 || count > 900) throw Error('Invalid frame count');
+/**
+ * Select a video-aligned window of frame measurements, padding past the end
+ * with silence. Offset is measured in whole 30-fps frames, just like Audio.trimBefore.
+ */
+export function trimAnalysis(analysis, count, offsetFrames = 0) {
+  if (!Number.isInteger(count) || count < 0 || count > 900 ||
+      !Number.isInteger(offsetFrames) || offsetFrames < 0 || offsetFrames > 108000) {
+    throw Error('Invalid frame window');
+  }
+  const zeroSpectrum = Array(BIN_COUNT).fill(0);
+  const zeroBands = [0, 0, 0];
   return {
-    levels: analysis.levels.slice(0, count),
-    spectrum: analysis.spectrum.slice(0, count),
-    bands: analysis.bands.slice(0, count)
+    levels: Array.from({length:count},(_,i)=>analysis.levels[offsetFrames+i]??0),
+    spectrum: Array.from({length:count},(_,i)=>analysis.spectrum[offsetFrames+i]??zeroSpectrum),
+    bands: Array.from({length:count},(_,i)=>analysis.bands[offsetFrames+i]??zeroBands)
   };
 }

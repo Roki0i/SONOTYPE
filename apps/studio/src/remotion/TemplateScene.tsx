@@ -109,7 +109,7 @@ export const TemplateScene:React.FC<SceneProps>=(props)=>{
   return <ShowcaseScene {...props}/>;
 };
 
-const ShowcaseScene:React.FC<SceneProps> = ({templateId, title,artist='',theme,audioSrc,coverSrc='',notes,levels,spectrum,bands})=>{
+const ShowcaseScene:React.FC<SceneProps> = ({templateId, title,artist='',theme,audioSrc,startFrame=0,coverSrc='',notes,levels,spectrum,bands})=>{
   const frame=useCurrentFrame();
   const {fps,durationInFrames}=useVideoConfig();
   const t=frame/fps, p=PALETTES[theme], level=clamp(levels[frame]??0);
@@ -119,7 +119,7 @@ const ShowcaseScene:React.FC<SceneProps> = ({templateId, title,artist='',theme,a
   const progress=clamp(frame/durationInFrames);
 
   return <AbsoluteFill style={{...font,overflow:'hidden'}}>
-    {resolvedAudio?<Audio src={resolvedAudio}/>:null}
+    {resolvedAudio?<Audio src={resolvedAudio} trimBefore={startFrame}/>:null}
     {templateId==='retro-grid'?
       <SpectralCards bass={bass} level={level} bins={bins} frame={frame} accent={p.accent}
         artist={artist} title={title} cover={resolvedCover} t={t} levels={levels}/>:
