@@ -4,6 +4,7 @@ import {staticFile} from 'remotion';
 import {TemplateScene} from './remotion/TemplateScene';
 import {demoNotes, demoAnalysis} from './remotion/defaults';
 import {TEMPLATES, type TemplateId} from './templates.mjs';
+import {SOCIAL_PRESETS, type SocialId} from './social-presets.mjs';
 import {trimAnalysis, type AudioAnalysis} from './signal-analysis.mjs';
 import type {SceneProps, Theme, Note} from './remotion/types';
 import {analyzeAudio} from './audio-analysis';
@@ -17,6 +18,8 @@ export function App(){
   const [templateId,setTemplateId]=useState<TemplateId>('retro-grid');
   const [theme,setTheme]=useState<Theme>('arctic');
   const [seconds,setSeconds]=useState(15);
+  const [platform,setPlatform]=useState<SocialId>('shorts');
+  const [showSafeArea,setShowSafeArea]=useState(false);
   const [notes,setNotes]=useState<Note[]>(demoNotes);
   const [analysis,setAnalysis]=useState<AudioAnalysis>(demoAnalysis);
   const [source,setSource]=useState(staticFile('demo.wav'));
@@ -35,6 +38,7 @@ export function App(){
     if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
   },[]);
   const frames=useMemo(()=>trimAnalysis(analysis,seconds*FPS),[analysis,seconds]);
+  const selectedPlatform=SOCIAL_PRESETS.find(p=>p.id===platform)??SOCIAL_PRESETS[0];
   const props=useMemo<SceneProps>(()=>({
     title:title.trim()||'UNTITLED',artist,templateId,theme,audioSrc:source,
     coverSrc,notes,...frames
@@ -110,7 +114,7 @@ export function App(){
       if(video.size<1000)throw Error('空の動画が生成されました');
       const url=URL.createObjectURL(video);
       const a=document.createElement('a');
-      a.href=url;a.download='oto-'+Date.now()+'.mp4';
+      a.href=url;a.download='oto-'+selectedPlatform.filename+'-'+Date.now()+'.mp4';
       document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),60000);
       setStatus('MP4を保存しました（'+(video.size/1048576).toFixed(1)+' MiB）');
@@ -136,7 +140,7 @@ export function App(){
             className={'template-card'+(templateId===entry.id?' selected':'')}>
             <div className={'template-thumbnail thumb-'+entry.id}>
               <span className="thumb-kicker">{String(i+1).padStart(2,'0')} / OTO</span>
-              <span className="thumb-emblem">{entry.id==='signal'?'▥▥▥':entry.id==='retro-grid'?'▣ ▦':entry.id==='lofi-player'?'◎':'◉'}</span>
+              <span className="thumb-emblem">{entry.id==='signal'?'▥▥▥':entry.id==='retro-grid'?'▣ ▦':entry.id==='lofi-player'?'◎':entry.id==='dopa-rush'?'▣▰':'◉'}</span>
               <span className="thumb-barlines"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></span>
             </div>
             <span className="template-card-meta">
@@ -146,7 +150,7 @@ export function App(){
             <span className="template-description">{entry.description}</span>
           </button>)}
       </div>
-      <div className="aside-foot">LOCAL EDITION <span>v0.5</span></div>
+      <div className="aside-foot">LOCAL EDITION <span>v0.6</span></div>
     </aside>
 
     <main className="editor-stage">
@@ -155,16 +159,29 @@ export function App(){
         <span className="workspace-status"><span className="status-dot"/>ローカル制作</span>
       </header>
       <div className="canvas-area">
+
         <div className="canvas-toolbar">
           <span><b>プレビュー</b> / {TEMPLATES.find(t=>t.id===templateId)?.name}</span>
-          <span>9:16 <span className="toolbar-dot">•</span> 1080 × 1920 <span className="toolbar-dot">•</span> 30 FPS</span>
+          <div className="canvas-display-options">
+            <span>9:16 <span className="toolbar-dot">•</span> 1080 × 1920 <span className="toolbar-dot">•</span> 30 FPS</span>
+            <button type="button" className="guide-toggle" aria-pressed={showSafeArea}
+              onClick={()=>setShowSafeArea(value=>!value)}>{showSafeArea?'ガイドを隠す':'文字位置ガイド'}</button>
+          </div>
         </div>
         <div className="preview-shell">
-          <Player key={seconds} component={TemplateScene} inputProps={props}
-            durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
-            controls style={{width:'100%',maxWidth:365,aspectRatio:'9 / 16'}}/>
+          <div className="player-with-guide">
+            <Player key={seconds} component={TemplateScene} inputProps={props}
+              durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
+              controls style={{width:'100%',aspectRatio:'9 / 16'}}/>
+            {showSafeArea?<div className="safe-zone-guide" aria-hidden="true" style={{
+              top:(selectedPlatform.safe.top*100)+'%',
+              right:(selectedPlatform.safe.right*100)+'%',
+              bottom:(selectedPlatform.safe.bottom*100)+'%',
+              left:(selectedPlatform.safe.left*100)+'%'
+            }}><span>文字位置の目安</span></div>:null}
+          </div>
         </div>
-        <p className="editor-caption">テンプレート・文字・配色はすぐにプレビューへ反映されます。</p>
+        <p className="editor-caption">テンプレート・文字・配色はすぐ反映。ガイド枠はMP4に含まれません。</p>
       </div>
     </main>
 
@@ -207,6 +224,18 @@ export function App(){
             <span className="swatch-preview"/><span>{color}</span>
           </button>)}
         </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>投稿先プリセット</h3>
+        <div className="platform-options" role="group" aria-label="投稿プラットフォーム">
+          {SOCIAL_PRESETS.map(item=><button key={item.id} type="button"
+            className={'platform-option'+(platform===item.id?' active':'')}
+            aria-pressed={platform===item.id} onClick={()=>setPlatform(item.id)}>
+            {item.name}
+          </button>)}
+        </div>
+        <p className="setting-note">どの投稿先も9:16の同じMP4です。安全領域の表示は目安で、アプリのUIによって変わります。</p>
       </section>
       <section className="settings-section">
         <h3>動画の長さ</h3>

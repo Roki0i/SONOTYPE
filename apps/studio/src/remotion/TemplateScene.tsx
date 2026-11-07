@@ -3,6 +3,7 @@ import {AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig} from 're
 import {Audio} from '@remotion/media';
 import type {SceneProps, Theme} from './types';
 import {SignalScene} from './SignalScene';
+import {DopaRushScene} from './DopaRushScene';
 
 const PALETTES: Record<Theme, {accent:string; pale:string; ink:string; paper:string}> = {
   arctic: {accent:'#6ac6e9',pale:'#d1eefd',ink:'#101e30',paper:'#f0f7fc'},
@@ -104,6 +105,7 @@ const SpectralCards:React.FC<{bass:number[];level:number;bins:number[];frame:num
 export const TemplateScene:React.FC<SceneProps>=(props)=>{
   // Preserve the original visualizer and frame-level MIDI regression unchanged.
   if(!props.templateId || props.templateId==='signal')return <SignalScene {...props}/>;
+  if(props.templateId==='dopa-rush')return <DopaRushScene {...props}/>;
   return <ShowcaseScene {...props}/>;
 };
 

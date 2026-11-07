@@ -82,11 +82,20 @@ def main():
                 try:
                     page.goto(URL, wait_until="networkidle", timeout=90000)
                     cards = page.locator("button.template-card")
-                    assert cards.count() == 4, "Expected four template options"
+                    assert cards.count() == 5, "Expected five template options"
 
-                    for i in (0, 1, 2, 3, 1):
+                    for i in (0, 1, 2, 3, 4):
                         cards.nth(i).click()
                         assert cards.nth(i).get_attribute("aria-pressed") == "true"
+                    platforms = page.locator("button.platform-option")
+                    assert platforms.count() == 3, "Expected three publishing presets"
+                    for i in (0, 1, 2):
+                        platforms.nth(i).click()
+                        assert platforms.nth(i).get_attribute("aria-pressed") == "true"
+                    page.locator("button.guide-toggle").click()
+                    assert page.locator(".safe-zone-guide").count() == 1
+                    page.locator("button.guide-toggle").click()
+                    assert page.locator(".safe-zone-guide").count() == 0
                     page.locator("#song-title").fill("CI TEST TRACK")
                     page.locator("#artist-name").fill("CI TEST ARTIST")
                     page.locator("button.theme-option.theme-violet").click()
@@ -105,12 +114,13 @@ def main():
                     with page.expect_download(timeout=240000) as download_info:
                         page.locator("button.export-button").click()
                     download = download_info.value
+                    assert download.suggested_filename.startswith("oto-tiktok-")
                     path = RESULTS / "studio-upload-cover.mp4"
                     download.save_as(str(path))
                     bytes_count = inspect_mp4(path)
                     assert not errors, "Browser errors: " + " | ".join(errors)
                     print(
-                        f"STUDIO EDITOR E2E PASS: four templates, text/theme/duration, "
+                        f"STUDIO EDITOR E2E PASS: five templates, three social presets, text/theme/duration, "
                         f"uploaded cover, H.264/AAC MP4 ({bytes_count} bytes)", flush=True
                     )
                 except Exception:

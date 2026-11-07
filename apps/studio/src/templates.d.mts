@@ -1,4 +1,4 @@
-export type TemplateId = 'signal' | 'retro-grid' | 'lofi-player' | 'cover-focus';
+export type TemplateId = 'signal' | 'retro-grid' | 'lofi-player' | 'cover-focus' | 'dopa-rush';
 export interface TemplateDefinition {
   id: TemplateId;
   name: string;

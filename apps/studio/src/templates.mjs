@@ -7,6 +7,7 @@ export const TEMPLATES = Object.freeze([
   {id: 'retro-grid', name: 'Retro Grid', category: 'レトロ', description: 'モノクロの6パネル音楽プレイヤー'},
   {id: 'lofi-player', name: 'After Hours', category: 'ローファイ', description: 'ジャケットと波形の夜景風レイアウト'},
   {id: 'cover-focus', name: 'Cover Flow', category: 'ミニマル', description: 'ジャケットと文字が主役のシンプルな映像'},
+  {id: 'dopa-rush', name: 'Dopa Rush', category: 'ショート', description: 'ビート反応・大字幕・高密度の縦型動画'},
 ]);
 export const TEMPLATE_IDS = Object.freeze(TEMPLATES.map(template => template.id));
 export function isTemplateId(id) {
