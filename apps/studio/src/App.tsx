@@ -4,9 +4,9 @@ import {TemplateScene} from './remotion/TemplateScene';
 import {demoNotes, demoAnalysis} from './remotion/defaults';
 import {TEMPLATES, type TemplateId} from './templates.mjs';
 import {SOCIAL_PRESETS, type SocialId} from './social-presets.mjs';
-import {trimAnalysis, type AudioAnalysis} from './signal-analysis.mjs';
+import {trimAnalysis} from './signal-analysis.mjs';
 import type {SceneProps, Theme, Note} from './remotion/types';
-import {analyzeAudio} from './audio-analysis';
+import {decodeAudio, analyzeAudioSegment} from './audio-analysis';
 import {readMidi} from './midi';
 
 const FPS=30;
@@ -14,17 +14,24 @@ const THEMES:Theme[]=['arctic','mint','violet'];
 const MAX_COVER=5*1024*1024;
 const IS_PAGES=import.meta.env.VITE_PAGES_BUILD==='true';
 const DEMO_AUDIO_URL=import.meta.env.BASE_URL+'demo.wav';
+const DEMO_DURATION=16;
+const formatSeconds=(seconds:number)=>{
+  const whole=Math.floor(seconds);
+  return String(Math.floor(whole/60))+':'+String(whole%60).padStart(2,'0');
+};
 
 export function App(){
   const [templateId,setTemplateId]=useState<TemplateId>('retro-grid');
   const [theme,setTheme]=useState<Theme>('arctic');
   const [seconds,setSeconds]=useState(15);
+  const [startFrame,setStartFrame]=useState(0);
+  const [sourceDuration,setSourceDuration]=useState(DEMO_DURATION);
+  const [decodedAudio,setDecodedAudio]=useState<AudioBuffer|null>(null);
   const [platform,setPlatform]=useState<SocialId>('shorts');
   const [showSafeArea,setShowSafeArea]=useState(false);
   const [previewWidth,setPreviewWidth]=useState(460);
   const [settingsTab,setSettingsTab]=useState<'content'|'style'>('content');
   const [notes,setNotes]=useState<Note[]>(demoNotes);
-  const [analysis,setAnalysis]=useState<AudioAnalysis>(demoAnalysis);
   const [source,setSource]=useState(DEMO_AUDIO_URL);
   const [title,setTitle]=useState('ORIGINAL DEMO');
   const [artist,setArtist]=useState('Your artist');
@@ -40,12 +47,26 @@ export function App(){
     if(uploaded.current)URL.revokeObjectURL(uploaded.current);
     if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
   },[]);
-  const frames=useMemo(()=>trimAnalysis(analysis,seconds*FPS),[analysis,seconds]);
+  // Slider steps are one second (30 frames); limit to a complete selected interval.
+  // If the audio is shorter than the chosen output duration, pad the remainder with silence.
+  const maxStartFrame=Math.max(0,Math.floor(sourceDuration-seconds)*FPS);
+  const selectedStartFrame=Math.min(startFrame,maxStartFrame);
+  const clipStartSeconds=selectedStartFrame/FPS;
+  const frames=useMemo(()=>
+    decodedAudio
+      ? analyzeAudioSegment(decodedAudio,seconds,selectedStartFrame)
+      : trimAnalysis(demoAnalysis,seconds*FPS,selectedStartFrame),
+    [decodedAudio,seconds,selectedStartFrame]);
+  const clipNotes=useMemo(()=>notes.flatMap(note=>{
+    const first=Math.max(0,note.time-clipStartSeconds);
+    const last=Math.min(seconds,note.time+note.duration-clipStartSeconds);
+    return last>first?[{...note,time:first,duration:last-first}]:[];
+  }),[notes,clipStartSeconds,seconds]);
   const selectedPlatform=SOCIAL_PRESETS.find(p=>p.id===platform)??SOCIAL_PRESETS[0];
   const props=useMemo<SceneProps>(()=>({
     title:title.trim()||'UNTITLED',artist,templateId,theme,audioSrc:source,
-    coverSrc,notes,...frames
-  }),[title,artist,templateId,theme,source,coverSrc,notes,frames]);
+    startFrame:selectedStartFrame,coverSrc,notes:clipNotes,...frames
+  }),[title,artist,templateId,theme,source,selectedStartFrame,coverSrc,clipNotes,frames]);
 
   async function setAudio(file?:File){
     if(!file)return;
@@ -54,14 +75,18 @@ export function App(){
     }
     setLoading(true);
     try{
-      const measured=await analyzeAudio(file,30);
+      const decoded=await decodeAudio(file);
+      // Verify the decoded PCM and initial clip before updating the active audio.
+      analyzeAudioSegment(decoded,seconds,0);
       const url=URL.createObjectURL(file);
       if(uploaded.current)URL.revokeObjectURL(uploaded.current);
       uploaded.current=url;
       audioFile.current=file;
       setSource(url);
+      setDecodedAudio(decoded);
+      setSourceDuration(decoded.duration);
+      setStartFrame(0);
       setTitle(file.name.replace(/\.[^.]+$/,'').replace(/[\x00-\x1f]/g,' ').slice(0,64));
-      setAnalysis(measured);
       setNotes([]);
       setStatus('音声を解析しました。MIDIを入れると音程も表示できます。');
     }catch(e){setStatus(e instanceof Error?e.message:'音声解析エラー');}
@@ -92,7 +117,7 @@ export function App(){
     if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
     uploaded.current=null;coverUrl.current=null;audioFile.current=null;coverFile.current=null;
     setSource(DEMO_AUDIO_URL);setCoverSrc('');setTitle('ORIGINAL DEMO');setArtist('Your artist');
-    setNotes(demoNotes);setAnalysis(demoAnalysis);
+    setNotes(demoNotes);setDecodedAudio(null);setSourceDuration(DEMO_DURATION);setStartFrame(0);
     setStatus('デモ音源と既定のジャケットに戻しました');
   }
   async function exportMp4(){
@@ -129,7 +154,7 @@ export function App(){
         if(coverFile.current)form.append('cover',coverFile.current);
         form.append('props',JSON.stringify({
           title:props.title,artist:props.artist,templateId:props.templateId,
-          theme,seconds,notes,...frames
+          theme,seconds,startFrame:selectedStartFrame,notes:clipNotes,...frames
         }));
         const response=await fetch('/api/export',{method:'POST',body:form});
         if(!response.ok){
@@ -177,7 +202,7 @@ export function App(){
             <span className="template-description">{entry.description}</span>
           </button>)}
       </div>
-      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v0.8</span></div>
+      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v0.9</span></div>
     </aside>
 
     <main className="editor-stage">
@@ -203,7 +228,7 @@ export function App(){
         </div>
         <div className="preview-shell">
           <div className="player-with-guide" style={{maxWidth:previewWidth}}>
-            <Player key={seconds} component={TemplateScene} inputProps={props}
+            <Player key={seconds+'-'+selectedStartFrame} component={TemplateScene} inputProps={props}
               durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
               controls style={{width:'100%',aspectRatio:'9 / 16'}}/>
             {showSafeArea?<div className="safe-zone-guide" aria-hidden="true" style={{
@@ -251,6 +276,23 @@ export function App(){
             onChange={e=>{void setMidi(e.target.files?.[0]);e.target.value='';}}/>
         </label>
       </section>
+      <section className="settings-section clip-section">
+        <h3>曲の使用区間</h3>
+        <div className="clip-positions">
+          <span>開始 <strong>{formatSeconds(clipStartSeconds)}</strong></span>
+          <span>終了 <strong>{formatSeconds(Math.min(sourceDuration,clipStartSeconds+seconds))}</strong></span>
+        </div>
+        <input id="clip-start" aria-label="切り出し開始位置" className="clip-range" type="range"
+          min={0} max={maxStartFrame} step={FPS} value={selectedStartFrame}
+          disabled={loading||exporting||maxStartFrame===0}
+          onChange={event=>setStartFrame(Number(event.target.value))}/>
+        <div className="clip-ruler"><span>0:00</span><span>音源 {formatSeconds(sourceDuration)}</span></div>
+        <p className="setting-note">
+          {maxStartFrame===0
+            ? (sourceDuration<seconds?'音源が短いため、残りは無音になります。':'この動画尺では開始位置を変更できません。')
+            : '1秒単位で開始位置を選択。動画と波形・MIDIを同時に切り出します。'}
+        </p>
+      </section>
       <section className="settings-section">
         <h3>文字の編集</h3>
         <label className="field-label" htmlFor="song-title">曲名</label>
@@ -293,7 +335,7 @@ export function App(){
       </div>
       <div className="export-panel">
         <div className="export-head"><span className="eyebrow">STEP 03 — EXPORT</span>
-          <span className="export-format">{selectedPlatform.name} · {seconds}秒 · MP4</span></div>
+          <span className="export-format">{selectedPlatform.name} · {formatSeconds(clipStartSeconds)}から{seconds}秒 · MP4</span></div>
         <button className="export-button" type="button" disabled={loading||exporting}
           onClick={()=>void exportMp4()}>{exporting?'書き出し中…':'MP4を書き出す'} <span aria-hidden="true">↗</span></button>
         <button type="button" className="reset-button" onClick={resetDemo}

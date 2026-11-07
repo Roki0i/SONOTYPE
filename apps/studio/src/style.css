@@ -263,3 +263,14 @@ button:focus-visible,input:focus-visible {outline:3px solid #67a9dc;outline-offs
   .canvas-format {font-size:10px;}
   .preview-shell {padding:14px 10px;}
 }
+/* v0.9: audio clip region control; no changes to composition resolution. */
+.clip-positions {
+  display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  margin:0 0 12px;color:#6e8294;font-size:11px;
+}
+.clip-positions strong {color:#1a536f;font-size:18px;font-variant-numeric:tabular-nums;margin-left:4px;}
+.clip-range {display:block;width:100%;accent-color:#2b87b2;cursor:pointer;}
+.clip-range:disabled {opacity:.45;cursor:not-allowed;}
+.clip-ruler {display:flex;justify-content:space-between;gap:8px;margin-top:8px;
+  color:#7c90a2;font-size:10px;font-variant-numeric:tabular-nums;}
+.clip-section .setting-note {margin-top:10px;}

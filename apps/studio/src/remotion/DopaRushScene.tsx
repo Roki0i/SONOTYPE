@@ -16,7 +16,7 @@ const cap=(v:number)=>Math.max(0,Math.min(1,v));
 const words=['FEEL THE BEAT','FULL VOLUME','ON REPEAT','TURN IT UP'];
 
 export const DopaRushScene:React.FC<SceneProps>=({
-  title,artist='',theme,audioSrc,coverSrc='',levels,spectrum,bands
+  title,artist='',theme,audioSrc,startFrame=0,coverSrc='',levels,spectrum,bands
 })=>{
   const frame=useCurrentFrame();
   const {fps,durationInFrames}=useVideoConfig();
@@ -36,7 +36,7 @@ export const DopaRushScene:React.FC<SceneProps>=({
     background:'#070A17',color:'#fff',overflow:'hidden',
     fontFamily:'Inter,"Arial Black","Noto Sans JP",system-ui,sans-serif'
   }}>
-    {audio?<Audio src={audio}/>:null}
+    {audio?<Audio src={audio} trimBefore={startFrame}/>:null}
     <AbsoluteFill style={{opacity:.8,backgroundImage:
       'linear-gradient(145deg,'+p.primary+'55,#080913 80%)'}}/>
     <div style={{position:'absolute',inset:-500,

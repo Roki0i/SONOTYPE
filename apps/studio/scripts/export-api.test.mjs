@@ -138,3 +138,13 @@ test('Social publishing presets share 9:16 output with distinct names and approx
   }
   assert.equal(validateMetadata({...base,templateId:'dopa-rush'}).templateId,'dopa-rush');
 });
+test('Audio start frame is validated and forwarded to the server renderer',async()=>{
+  assert.equal(validateMetadata({...base,startFrame:90}).startFrame,90);
+  assert.equal(validateMetadata(base).startFrame,0);
+  for(const value of [-1,NaN,Infinity,108001,1.5,'90']){
+    assert.throws(()=>validateMetadata({...base,startFrame:value}),/audio start frame/);
+  }
+  const r=await request({props:{...base,startFrame:240}});
+  assert.equal(r.status,200);
+  assert.equal(lastExportProps.startFrame,240);
+});

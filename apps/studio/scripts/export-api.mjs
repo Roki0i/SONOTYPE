@@ -22,13 +22,14 @@ const DURATIONS = new Set([8, 15, 30]);
 
 export function validateMetadata(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Error('Invalid props');
-  const {title, artist = '', templateId = 'signal', theme, seconds, levels, spectrum, bands, notes} = raw;
+  const {title, artist = '', templateId = 'signal', theme, seconds, levels, spectrum, bands, notes, startFrame = 0} = raw;
   if (typeof title !== 'string' || title.length < 1 || title.length > 64 || /[\x00-\x1f]/.test(title)) {
     throw Error('Invalid title');
   }
   if (typeof artist !== 'string' || artist.length > 64 || /[\x00-\x1f]/.test(artist)) throw Error('Invalid artist');
   if (!isTemplateId(templateId)) throw Error('Invalid template');
   if (!THEMES.has(theme) || !DURATIONS.has(seconds)) throw Error('Invalid theme or duration');
+  if (!Number.isInteger(startFrame) || startFrame < 0 || startFrame > 3600*30) throw Error('Invalid audio start frame');
   if (!Array.isArray(levels) || levels.length !== seconds * 30 ||
     !levels.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1)) {
     throw Error('Invalid audio levels');
@@ -44,7 +45,7 @@ export function validateMetadata(raw) {
       n.time <= 3600 && Number.isFinite(n.duration) && n.duration > 0 && n.duration <= 120)) {
     throw Error('Invalid MIDI notes');
   }
-  return {title, artist, templateId, theme, seconds, levels, spectrum, bands, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
+  return {title, artist, templateId, theme, seconds, startFrame, levels, spectrum, bands, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
 }
 
 export function validateAudio(bytes, extension) {
@@ -176,7 +177,7 @@ export function makeExportServer({render=cliRender}={}){
       if (coverBytes && coverExtension) await writeFile(join(uploadDir,'cover'+coverExtension),coverBytes,{mode:0o600});
       const props={
         title:metadata.title,artist:metadata.artist,templateId:metadata.templateId,
-        theme:metadata.theme,notes:metadata.notes,levels:metadata.levels,
+        theme:metadata.theme,startFrame:metadata.startFrame,notes:metadata.notes,levels:metadata.levels,
         spectrum:metadata.spectrum,bands:metadata.bands,
         audioSrc:'static:render-uploads/'+relative+'/'+fileName,
         coverSrc:coverExtension?'static:render-uploads/'+relative+'/cover'+coverExtension:''

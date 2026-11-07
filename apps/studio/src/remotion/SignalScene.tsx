@@ -12,7 +12,7 @@ const clamp = (x: number) => Math.min(1, Math.max(0, x));
 const panel: React.CSSProperties = {padding: 28, background: '#fff', border: '2px solid #d2e0ec'};
 const titleStyle: React.CSSProperties = {fontSize: 19, letterSpacing: 1.5, fontWeight: 700, color: '#69859e'};
 
-export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, notes, levels, spectrum, bands}) => {
+export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, startFrame=0, notes, levels, spectrum, bands}) => {
   const frame = useCurrentFrame();
   const {fps, durationInFrames} = useVideoConfig();
   const t = frame / fps;
@@ -23,7 +23,7 @@ export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, notes
   const [low, mid, high] = bands[frame] ?? [0, 0, 0];
   return (
     <AbsoluteFill style={{background: c.background, fontFamily: 'Consolas, monospace', color: c.navy}}>
-      {resolvedAudioSrc ? <Audio src={resolvedAudioSrc}/> : null}
+      {resolvedAudioSrc ? <Audio src={resolvedAudioSrc} trimBefore={startFrame}/> : null}
       <div style={{height: 533, background: c.navy, color: '#e9f7ff', padding: 50}}>
         <div style={{fontSize: 28, fontWeight: 900, letterSpacing: 3}}>OTO / SIGNAL STUDIO</div>
         <div style={{color: c.light, fontSize: 18, marginTop: 17}}>MUSIC / DATA / FRAME ENGINE</div>

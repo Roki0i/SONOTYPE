@@ -43,3 +43,19 @@ test('Deterministic analysis repeated on identical PCM input',()=>{
   const input=tone(220,1);
   assert.deepEqual(analyzePcm(input,22050,1),analyzePcm(input,22050,1));
 });
+test('Audio analysis window selects the requested source frames and pads after source end',()=>{
+  const source=analyzePcm(
+    Float32Array.from({length:22050*3},(_,i)=>i<22050?0:Math.sin(i*2*Math.PI*440/22050)*.45),
+    22050,4);
+  const fromSecondOne=trimAnalysis(source,30,30);
+  assert.equal(fromSecondOne.levels.length,30);
+  assert.ok(fromSecondOne.levels[10]>.2);
+  assert.ok(fromSecondOne.bands[10][1]>.3);
+  assert.equal(trimAnalysis(source,30,0).levels[10],0);
+  const padding=trimAnalysis(source,30,115);
+  assert.equal(padding.levels[29],0);
+  assert.deepEqual(padding.spectrum[29],Array(BIN_COUNT).fill(0));
+  assert.deepEqual(padding.bands[29],[0,0,0]);
+  assert.throws(()=>trimAnalysis(source,8,-1),/frame window/);
+  assert.throws(()=>trimAnalysis(source,8,2.5),/frame window/);
+});
