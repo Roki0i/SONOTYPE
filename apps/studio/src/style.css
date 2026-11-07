@@ -158,3 +158,108 @@ button:focus-visible,input:focus-visible {outline:3px solid #67a9dc;outline-offs
 .platform-option.active {background:#e5f4fe;border-color:#68a7ca;color:#175b89;}
 .setting-note {font-size:10px;line-height:1.6;color:#8493a2;margin:10px 0 0;}
 .export-panel {position:sticky;bottom:0;background:#fff;z-index:7;box-shadow:0 -9px 25px #1a314210;}
+
+
+/* v0.8: task-focused editing; retain independent scroll areas on desktop. */
+.settings-tabs {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+  padding:10px 15px;
+  background:#fff;
+  border-bottom:1px solid #e4edf3;
+  flex-shrink:0;
+}
+.settings-tab {
+  border:1px solid transparent;
+  background:#f0f4f8;
+  color:#64798b;
+  border-radius:9px;
+  padding:12px 5px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.2;
+}
+.settings-tab:hover {background:#e9f3fb;color:#315d7b;}
+.settings-tab.active,
+.settings-tab[aria-pressed="true"] {background:#e2f2fd;border-color:#79b5d4;color:#135982;}
+.settings-scroll {min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;}
+.settings-scroll > [hidden] {display:none;}
+.settings-scroll .settings-section:last-child {border-bottom:0;}
+.settings-header {flex-shrink:0;}
+.export-panel {
+  margin-top:0;
+  position:relative;
+  flex-shrink:0;
+  padding:16px 22px 14px;
+  border-top:1px solid #dbe7ef;
+  background:#fff;
+  z-index:8;
+  box-shadow:0 -12px 24px #213b5210;
+}
+.export-head {flex-direction:row;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.export-format {font-size:10px;text-align:right;}
+.export-button {padding:13px 15px;}
+.reset-button {padding:7px 0;}
+.status-message {margin:7px 0;max-height:70px;overflow:auto;}
+.privacy-note {font-size:9px;line-height:1.45;}
+.canvas-display-options {gap:7px;}
+.canvas-format {font-size:11px;white-space:nowrap;}
+.preview-zoom {display:flex;gap:3px;padding:3px;background:#e0e8ef;border-radius:8px;}
+.preview-zoom-button {
+  border:1px solid transparent;
+  border-radius:6px;
+  padding:5px 9px;
+  font-size:11px;
+  font-weight:700;
+  background:transparent;
+  color:#567085;
+}
+.preview-zoom-button:hover {background:#f5fbff;}
+.preview-zoom-button[aria-pressed="true"] {
+  color:#184a68;
+  border-color:#bed7e6;
+  background:#fff;
+  box-shadow:0 1px 3px #10233416;
+}
+.player-with-guide {width:100%;flex:none;max-height:none;}
+.preview-shell > .player-with-guide {max-height:none;}
+.preview-shell {align-items:flex-start;min-height:0;padding:23px 16px;}
+.canvas-area {max-width:960px;}
+
+@media (min-width:941px) {
+  .app-shell {
+    height:100dvh;
+    min-height:560px;
+    grid-template-columns:clamp(215px,18vw,250px) minmax(0,1fr) clamp(290px,24vw,335px);
+  }
+  .templates-sidebar,.editor-stage,.settings-sidebar {min-height:0;}
+  .templates-sidebar,.settings-sidebar {height:100%;overflow:hidden;}
+  .template-gallery {flex:1;min-height:0;overflow-y:auto;}
+  .editor-stage {overflow-y:auto;overscroll-behavior:contain;}
+  .canvas-area {padding:22px 25px 32px;}
+}
+
+@media (min-width:701px) and (max-width:940px) {
+  .settings-sidebar {
+    display:flex;
+    flex-direction:column;
+    grid-column:2;
+    grid-row:2;
+    min-height:500px;
+  }
+  .settings-header,.export-panel {grid-column:auto;}
+  .settings-scroll {max-height:460px;}
+  .settings-section {border-right:0;}
+  .editor-stage {min-width:0;}
+}
+
+@media (max-width:700px) {
+  .settings-sidebar {display:flex;flex-direction:column;}
+  .settings-scroll {overflow:visible;}
+  .settings-tabs {position:sticky;top:0;z-index:9;}
+  .export-panel {position:relative;bottom:auto;}
+  .canvas-display-options {justify-content:flex-start;flex-wrap:wrap;}
+  .canvas-format {font-size:10px;}
+  .preview-shell {padding:14px 10px;}
+}
