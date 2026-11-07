@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {writeFile,readFile} from 'node:fs/promises';
 import {makeExportServer,validateMetadata,validateAudio,validateCover} from './export-api.mjs';
 import {TEMPLATES,isTemplateId} from '../src/templates.mjs';
+import {SOCIAL_PRESETS, isSocialId} from '../src/social-presets.mjs';
 
 const ORIGIN='http://127.0.0.1:5173';
 const base={title:'TEST',theme:'mint',seconds:8,
@@ -84,7 +85,7 @@ test('Development command launches both UI and export API', async()=>{
 });
 
 test('Template catalog has unique stable IDs and safe metadata',()=>{
-  assert.deepEqual(TEMPLATES.map(t=>t.id),['signal','retro-grid','lofi-player','cover-focus']);
+  assert.deepEqual(TEMPLATES.map(t=>t.id),['signal','retro-grid','lofi-player','cover-focus','dopa-rush']);
   assert.equal(new Set(TEMPLATES.map(t=>t.id)).size,TEMPLATES.length);
   for(const template of TEMPLATES)assert.equal(isTemplateId(template.id),true);
   assert.equal(isTemplateId('unknown'),false);
@@ -122,4 +123,18 @@ test('Invalid cover mimetype is rejected',async()=>{
   const png=Buffer.from([137,80,78,71,13,10,26,10,0,0,0,0,0]);
   const response=await request({cover:{bytes:png,type:'image/svg+xml',filename:'art.svg'}});
   assert.equal(response.status,400);
+});
+
+test('Social publishing presets share 9:16 output with distinct names and approximate safe guides',()=>{
+  assert.deepEqual(SOCIAL_PRESETS.map(p=>p.id),['shorts','reels','tiktok']);
+  assert.equal(new Set(SOCIAL_PRESETS.map(p=>p.filename)).size,3);
+  assert.equal(isSocialId('shorts'),true);
+  assert.equal(isSocialId('unknown'),false);
+  for(const p of SOCIAL_PRESETS) {
+    assert.ok(p.safe.top>=0 && p.safe.top<.3);
+    assert.ok(p.safe.right>=0 && p.safe.right<.3);
+    assert.ok(p.safe.bottom>=0 && p.safe.bottom<.3);
+    assert.ok(p.safe.left>=0 && p.safe.left<.3);
+  }
+  assert.equal(validateMetadata({...base,templateId:'dopa-rush'}).templateId,'dopa-rush');
 });
