@@ -15,7 +15,7 @@ export function LandingPage({onStart,onPick}:Props){
       <nav aria-label="ページ内ナビゲーション">
         <a href="#oto-templates">テンプレート</a>
         <a href="#oto-guide">使い方</a>
-        <button type="button" className="oto-nav-cta" onClick={onStart}>編集を始める <span aria-hidden="true">↗</span></button>
+        <button type="button" className="oto-nav-cta" onClick={onStart}>編集する <span aria-hidden="true">↗</span></button>
       </nav>
     </header>
 
@@ -27,7 +27,7 @@ export function LandingPage({onStart,onPick}:Props){
           <p className="oto-hero-lead">音源を読み込んで、テンプレートを選ぶだけ。ビートに反応する縦型動画をブラウザで作成し、MP4で保存できます。</p>
           <div className="oto-hero-actions">
             <button type="button" onClick={onStart} className="oto-main-cta">無料で動画をつくる <span aria-hidden="true">↗</span></button>
-            <a className="oto-text-link" href="#oto-templates">テンプレートを見る <span aria-hidden="true">↓</span></a>
+            
           </div>
           <p className="oto-hero-fine">アカウント登録不要 · Shorts / Reels / TikTok向け · PC版Chrome/Edgeで動作確認済み</p>
         </div>
@@ -50,17 +50,10 @@ export function LandingPage({onStart,onPick}:Props){
         </div>
       </section>
 
-      <section className="oto-benefits" aria-label="OTOの特徴">
-        <div><strong>05</strong><span>音楽に合わせる<br/>デザイン</span></div>
-        <div><strong>03</strong><span>投稿先<br/>プリセット</span></div>
-        <div><strong>30s</strong><span>最長30秒の<br/>動画出力</span></div>
-        <div><strong>MP4</strong><span>H.264 / AACで<br/>保存</span></div>
-      </section>
-
       <section className="oto-home-section" id="oto-templates">
         <div className="oto-section-header">
           <div><p className="oto-section-eyebrow">01 / DESIGN</p><h2>曲に合うスタイルを選ぼう。</h2></div>
-          <p>5つのテンプレートから選択。色・テキスト・ジャケットを自由に調整できます。</p>
+          <p>好みのテンプレートから編集を開始できます。</p>
         </div>
         <div className="oto-home-gallery">
           {TEMPLATES.map((t,i)=><button className={'oto-home-template oto-home-template-'+t.id} key={t.id}
@@ -84,17 +77,15 @@ export function LandingPage({onStart,onPick}:Props){
           <article><span className="oto-step-no">02</span><h3>デザインを編集</h3><p>テンプレート・色・曲名・投稿先・8/15/30秒の尺を選択。再生プレビューで確認できます。</p></article>
           <article><span className="oto-step-no">03</span><h3>MP4で保存</h3><p>ブラウザ内で音声付きMP4を生成。端末のメディアプレイヤーで再生できます。</p></article>
         </div>
-        <div className="oto-guide-action"><button className="oto-main-cta" type="button" onClick={onStart}>制作を始める <span aria-hidden="true">↗</span></button></div>
       </section>
 
-      <section className="oto-trust">
-        <div><p className="oto-section-eyebrow">03 / PRIVACY</p><h2>音楽を、手元で編集。</h2></div>
-        <p>公開Web版の映像・音声の変換はブラウザで処理され、OTO専用の変換サーバーにはアップロードしません。編集プロジェクトを保存した場合は、このブラウザ内に音源・画像も保存します。ブラウザデータの削除で失われる場合があります。Remotionの利用状況テレメトリなど外部通信が発生する場合があります。</p>
-      </section>
+
     </main>
     <footer className="oto-home-footer">
-      <span>© OTO STUDIO · MAKE MUSIC VISUAL.</span>
-      <a href="https://github.com/Roki0i/oto-signal-studio" target="_blank" rel="noopener noreferrer">GitHubでコードを見る ↗</a>
+      <p className="oto-footer-privacy">制作時の音源・画像はブラウザ内で処理。保存データはこの端末だけに残り、サイトデータ削除で失われる場合があります。Remotionのテレメトリ通信が発生することがあります。</p>
+      <div><span>© OTO STUDIO</span>
+        <a href="https://github.com/Roki0i/oto-signal-studio" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      </div>
     </footer>
   </div>;
 }
