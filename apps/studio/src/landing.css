@@ -4,8 +4,7 @@
 .oto-home button{font:inherit}
 .oto-home button:focus-visible,.oto-home a:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
 .oto-home-nav{max-width:1440px;margin:auto;padding:27px clamp(24px,5vw,78px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
-.oto-home-logo{display:flex;align-items:center;gap:12px;letter-spacing:.06em;font-size:16px}
-.oto-home-logo strong span{font-weight:400;color:#869188}
+.oto-home-logo{display:flex;align-items:center;gap:12px;letter-spacing:.13em;font-size:16px}
 .oto-home-symbol{display:grid;place-items:center;width:43px;height:43px;border:1px solid #5b6959;border-radius:50%;color:var(--accent);font-size:22px;font-weight:850}
 .oto-home-nav nav{display:flex;align-items:center;gap:32px;font-size:13px;color:#b3bcb4}
 .oto-home-nav nav a:hover,.oto-home-footer a:hover{color:var(--accent)}
