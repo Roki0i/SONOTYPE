@@ -153,3 +153,14 @@ npm run dev
 - **文字位置ガイド**：各サービスの操作ボタン等を避けるための保守的な**編集目安**。プラットフォームの公式安全領域とは限らず、アプリのUI変更で異なる。ガイドは動画に焼き込まれない。
 - **データの扱い**：既存のローカルMP4書き出しAPIを利用。Web公開用のブラウザ内レンダラーへの移行は**別タスクで未実装**。GitHub Pagesに現在のAPIをそのまま置いてもMP4生成は動かない。
 - **検証**：NodeでテンプレートID・投稿先・安全領域値を検証。既存RemotionのH.264/AAC出力とLinux ChromiumでのUI操作E2E（5テンプレート・3投稿先・Dopa Rushによる画像アップロード/MP4保存）を実施する。
+
+## v0.7 GitHub Pages / ブラウザ完結Web版
+
+- 対象: `apps/studio` のReactエディタ。GitHub Pages向けのビルドは `VITE_PAGES_BUILD=true npm run build:pages`。Viteの`base`は`/oto-signal-studio/`となり、公開先のサブディレクトリに合わせて音声・JS・CSSを読み込む。
+- MP4書き出し: `@remotion/web-renderer` 4.0.539を利用し、WebCodecsが利用できるブラウザで**利用者の端末内**でH.264/AAC MP4を生成する。現在のローカルNode.js/Remotion CLI経由の書き出しも既存のまま維持する。
+- ブラウザのコーデック対応を `canRenderMediaOnWeb()` で検査し、非対応なら明示的にエラー表示する。映像のCSS対応はサーバー版と異なり、全テンプレートのピクセル単位での同一性は保証しない。ブラウザや端末の負荷次第でレンダリング時間が異なる。
+- `.github/workflows/pages.yml`: Pull RequestではPages用ビルド・監査のみ検証し、`main`更新時にはGitHub Pagesへデプロイを試行する。サイトを公開する前に、リポジトリ `Settings > Pages > Build and deployment > Source` で `GitHub Actions` を選択する必要がある。
+- 現在GitHubリポジトリは**Private**。GitHub FreeではPrivateからPagesを公開できず、GitHub Proなどの対応プランが必要。GitHub Freeなら**公開に同意した場合に限り**リポジトリをPublicへ変更する。Pages公開物は、Privateリポジトリであっても原則公開Webサイトになる。
+- Pagesの想定URL: `https://roki0i.github.io/oto-signal-studio/` （サイトの公開成功を示すURLではない）。デプロイ後にSettingsの`Visit site`で実URLを確認する。
+- 端末にアップロードした音声・画像は、Web版では独自動画変換APIへ送信しない。ただしRemotionの**レンダリングテレメトリ**通信があるため、完全オフライン・外部通信ゼロとは説明しない。
+- GitHub Pagesは個人制作・デモ目的での利用に留め、SaaS/商用サービス化する場合はGitHub Pagesの利用制限とRemotionライセンスを確認する。
