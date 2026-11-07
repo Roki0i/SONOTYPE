@@ -52,7 +52,8 @@ def main():
         proc=subprocess.Popen(['node','node_modules/vite/bin/vite.js','preview',
             '--host','127.0.0.1','--port','4173','--strictPort'],
             cwd=STUDIO,stdout=log,stderr=subprocess.STDOUT,
-            start_new_session=(os.name!='nt'))
+            start_new_session=(os.name!='nt'),
+            env={**os.environ,'VITE_PAGES_BUILD':'true'})
         try:
             await_server(proc)
             with sync_playwright() as p:
@@ -81,9 +82,17 @@ def main():
                     size=inspect(target)
                     assert not errors, errors
                     print(f'PAGES WEB MP4 PASS: {size} bytes H264/AAC 1080x1920')
-                except Exception:
-                    page.screenshot(path=str(RESULTS/'oto-pages-error.png'),full_page=True)
-                    print('Pages status:',page.locator('p.status-message').inner_text(),flush=True)
+                except Exception as error:
+                    print('Pages E2E root cause:',repr(error),flush=True)
+                    try:
+                        if not page.is_closed():
+                            page.screenshot(path=str(RESULTS/'oto-pages-error.png'),full_page=True,timeout=5000)
+                            messages=page.locator('p.status-message')
+                            if messages.count()>0:
+                                print('Pages UI status:',messages.first.inner_text(timeout=2000),flush=True)
+                            print('Loaded page URL:',page.url,flush=True)
+                    except Exception as diagnostics_error:
+                        print('Unable to capture diagnostics:',repr(diagnostics_error),flush=True)
                     raise
                 finally:
                     browser.close()
