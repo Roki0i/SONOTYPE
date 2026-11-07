@@ -1,6 +1,6 @@
 {
   "name": "@oto/studio",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,14 +12,16 @@
     "build": "npm run prepare:demo && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "render:demo": "npm run prepare:demo && remotion render src/remotion/entry.ts OTO-Demo out/oto-demo.mp4 --codec h264",
-    "audit": "npm audit --audit-level=high"
+    "audit": "npm audit --audit-level=high",
+    "build:pages": "npm run prepare:demo && tsc --noEmit && vite build"
   },
   "dependencies": {
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remotion": "4.0.539",
     "@remotion/player": "4.0.539",
-    "@remotion/media": "4.0.539"
+    "@remotion/media": "4.0.539",
+    "@remotion/web-renderer": "4.0.539"
   },
   "devDependencies": {
     "@remotion/cli": "4.0.539",

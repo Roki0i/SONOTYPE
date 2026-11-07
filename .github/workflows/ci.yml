@@ -34,7 +34,7 @@ jobs:
 
   browser-e2e:
     runs-on: ubuntu-24.04
-    timeout-minutes: 17
+    timeout-minutes: 23
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -60,6 +60,13 @@ jobs:
         run: python -u tests/e2e_browser.py
       - name: Template editor UI and uploaded-cover MP4 E2E
         run: python -u tests/e2e_studio_templates.py
+      - name: Build Pages bundle with browser-only MP4 exporter
+        working-directory: apps/studio
+        env:
+          VITE_PAGES_BUILD: 'true'
+        run: npm run build:pages
+      - name: Browser-only MP4 rendering in Pages subdirectory
+        run: python -u tests/e2e_pages_export.py
       - name: Upload failure screenshot
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

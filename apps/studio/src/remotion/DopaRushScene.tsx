@@ -38,12 +38,10 @@ export const DopaRushScene:React.FC<SceneProps>=({
   }}>
     {audio?<Audio src={audio}/>:null}
     <AbsoluteFill style={{opacity:.8,backgroundImage:
-      'radial-gradient(ellipse at 50% 35%,'+p.primary+'55,transparent 50%),'+
-      'linear-gradient(145deg,#131232,#080913 80%)'}}/>
+      'linear-gradient(145deg,'+p.primary+'55,#080913 80%)'}}/>
     <div style={{position:'absolute',inset:-500,
       transform:'rotate(-17deg) translateX('+(frame%150)*1.2+'px)',
-      backgroundImage:'repeating-linear-gradient(90deg,transparent 0,transparent 134px,'+
-        p.primary+'16 135px,'+p.primary+'16 137px)',opacity:.8}}/>
+      backgroundImage:'linear-gradient(90deg,'+p.primary+'12,transparent 85%)',opacity:.8}}/>
 
     <div style={{position:'absolute',top:218,left:120,right:175,display:'flex',
       alignItems:'center',justifyContent:'space-between',fontSize:24,fontWeight:900,letterSpacing:3}}>
@@ -61,7 +59,7 @@ export const DopaRushScene:React.FC<SceneProps>=({
         {artwork?
           <Img src={artwork} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:
           <div style={{width:'100%',height:'100%',display:'grid',placeItems:'center',
-            background:'conic-gradient(from '+(frame*1.1)+'deg,'+p.primary+','+p.second+',#10142b,'+p.primary+')'}}>
+            background:'linear-gradient(135deg,'+p.primary+','+p.second+' 52%,#10142b)'}}>
             <div style={{width:370,height:370,borderRadius:'50%',border:'45px solid #10142b',
               display:'grid',placeItems:'center',boxShadow:'0 0 0 25px #ffffff55'}}>
               <div style={{width:92,height:92,borderRadius:'50%',background:'#10142b'}}/>

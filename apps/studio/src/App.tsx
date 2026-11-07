@@ -1,6 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Player} from '@remotion/player';
-import {staticFile} from 'remotion';
 import {TemplateScene} from './remotion/TemplateScene';
 import {demoNotes, demoAnalysis} from './remotion/defaults';
 import {TEMPLATES, type TemplateId} from './templates.mjs';
@@ -13,6 +12,8 @@ import {readMidi} from './midi';
 const FPS=30;
 const THEMES:Theme[]=['arctic','mint','violet'];
 const MAX_COVER=5*1024*1024;
+const IS_PAGES=import.meta.env.VITE_PAGES_BUILD==='true';
+const DEMO_AUDIO_URL=import.meta.env.BASE_URL+'demo.wav';
 
 export function App(){
   const [templateId,setTemplateId]=useState<TemplateId>('retro-grid');
@@ -22,7 +23,7 @@ export function App(){
   const [showSafeArea,setShowSafeArea]=useState(false);
   const [notes,setNotes]=useState<Note[]>(demoNotes);
   const [analysis,setAnalysis]=useState<AudioAnalysis>(demoAnalysis);
-  const [source,setSource]=useState(staticFile('demo.wav'));
+  const [source,setSource]=useState(DEMO_AUDIO_URL);
   const [title,setTitle]=useState('ORIGINAL DEMO');
   const [artist,setArtist]=useState('Your artist');
   const [coverSrc,setCoverSrc]=useState('');
@@ -88,7 +89,7 @@ export function App(){
     if(uploaded.current)URL.revokeObjectURL(uploaded.current);
     if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
     uploaded.current=null;coverUrl.current=null;audioFile.current=null;coverFile.current=null;
-    setSource(staticFile('demo.wav'));setCoverSrc('');setTitle('ORIGINAL DEMO');setArtist('Your artist');
+    setSource(DEMO_AUDIO_URL);setCoverSrc('');setTitle('ORIGINAL DEMO');setArtist('Your artist');
     setNotes(demoNotes);setAnalysis(demoAnalysis);
     setStatus('デモ音源と既定のジャケットに戻しました');
   }
@@ -96,21 +97,45 @@ export function App(){
     if(exporting||loading)return;
     setExporting(true);setStatus('MP4を作成しています。ウィンドウを閉じずにお待ちください。');
     try{
-      const file=audioFile.current??new File([await(await fetch(staticFile('demo.wav'))).blob()],
-        'demo.wav',{type:'audio/wav'});
-      const form=new FormData();
-      form.append('audio',file);
-      if(coverFile.current)form.append('cover',coverFile.current);
-      form.append('props',JSON.stringify({
-        title:props.title,artist:props.artist,templateId:props.templateId,
-        theme,seconds,notes,...frames
-      }));
-      const response=await fetch('/api/export',{method:'POST',body:form});
-      if(!response.ok){
-        const error=await response.json().catch(()=>({error:'書き出しに失敗しました'}));
-        throw Error(typeof error.error==='string'?error.error:'書き出しに失敗しました');
+      let video:Blob;
+      if(IS_PAGES){
+        // GitHub Pages has no server; render and encode entirely in this browser.
+        const {canRenderMediaOnWeb,renderMediaOnWeb}=await import('@remotion/web-renderer');
+        const support=await canRenderMediaOnWeb({
+          container:'mp4',videoCodec:'h264',audioCodec:'aac',width:1080,height:1920,
+          outputTarget:'arraybuffer'
+        });
+        if(!support.canRender){
+          throw Error('このブラウザでは音声付きMP4を書き出せません: '+
+            support.issues.map(issue=>issue.message).join(' / '));
+        }
+        const {getBlob}=await renderMediaOnWeb({
+          composition:{id:'OTO-Web-Export',component:TemplateScene,
+            width:1080,height:1920,fps:FPS,durationInFrames:seconds*FPS,defaultProps:props},
+          inputProps:props,
+          container:'mp4',videoCodec:'h264',audioCodec:'aac',
+          outputTarget:'arraybuffer',
+          onProgress:({progress})=>setStatus('ブラウザでMP4を生成中: '+Math.round(progress*100)+'%')
+        });
+        video=await getBlob();
+      }else{
+        // Keep the existing trusted loopback workflow for Windows/Mac local users.
+        const file=audioFile.current??new File([await(await fetch(DEMO_AUDIO_URL)).blob()],
+          'demo.wav',{type:'audio/wav'});
+        const form=new FormData();
+        form.append('audio',file);
+        if(coverFile.current)form.append('cover',coverFile.current);
+        form.append('props',JSON.stringify({
+          title:props.title,artist:props.artist,templateId:props.templateId,
+          theme,seconds,notes,...frames
+        }));
+        const response=await fetch('/api/export',{method:'POST',body:form});
+        if(!response.ok){
+          const error=await response.json().catch(()=>({error:'書き出しに失敗しました'}));
+          throw Error(typeof error.error==='string'?error.error:'書き出しに失敗しました');
+        }
+        video=await response.blob();
       }
-      const video=await response.blob();
       if(video.size<1000)throw Error('空の動画が生成されました');
       const url=URL.createObjectURL(video);
       const a=document.createElement('a');
@@ -150,13 +175,13 @@ export function App(){
             <span className="template-description">{entry.description}</span>
           </button>)}
       </div>
-      <div className="aside-foot">LOCAL EDITION <span>v0.6</span></div>
+      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v0.7</span></div>
     </aside>
 
     <main className="editor-stage">
       <header className="editor-topbar">
         <div><span className="eyebrow">MUSIC VISUAL CREATOR</span><h1>音楽を、見せる。</h1></div>
-        <span className="workspace-status"><span className="status-dot"/>ローカル制作</span>
+        <span className="workspace-status"><span className="status-dot"/>{IS_PAGES?'ブラウザ制作':'ローカル制作'}</span>
       </header>
       <div className="canvas-area">
 
@@ -252,7 +277,7 @@ export function App(){
         <button type="button" className="reset-button" onClick={resetDemo}
           disabled={loading||exporting}>デモに戻す</button>
         <p role="status" className="status-message">{loading?'音声を解析しています…':status}</p>
-        <p className="privacy-note">音源・画像はこのPC内で処理します。外部サーバーには送信しません。</p>
+        <p className="privacy-note">{IS_PAGES?'音源・画像は動画生成サーバーへ送信しません。Remotionの利用状況テレメトリが送信される場合があります。':'音源・画像はこのPC内で処理します。外部サーバーには送信しません。'}</p>
       </div>
     </aside>
   </div>;
