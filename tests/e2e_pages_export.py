@@ -78,7 +78,14 @@ def main():
                     assert page.locator('text=ブラウザ制作').count()>0
                     assert page.evaluate("fetch('./demo.wav').then(r=>r.ok)")
                     page.locator('button.template-card').last.click()
+                    assert page.locator("button.settings-tab").count()==2
+                    assert page.locator("#settings-content").is_visible()
+                    page.locator("button.preview-zoom-button").last.click()
+                    assert page.locator(".player-with-guide").bounding_box()["width"]>=500
+                    page.locator("button.settings-tab").nth(1).click()
+                    assert page.locator("#settings-style").is_visible()
                     page.locator('div.length-options button').first.click()
+                    page.locator("button.settings-tab").first.click()
                     # Verify that user-provided blob audio and artwork are supported
                     # by web renderer, not only the bundled static demo.
                     page.locator('input[aria-label="音楽ファイルを選択"]').set_input_files(
@@ -88,6 +95,16 @@ def main():
                     page.locator('input[aria-label="ジャケット画像を選択"]').set_input_files(
                         {'name':'cover.png','mimeType':'image/png','buffer':test_png()})
                     page.locator('#song-title').fill('WEB EXPORT TEST')
+                    page.locator("button.settings-tab").nth(1).click()
+                    page.locator("button.settings-tab").first.click()
+                    assert page.locator('#song-title').input_value() == 'WEB EXPORT TEST'
+                    export_box=page.locator('button.export-button').bounding_box()
+                    assert export_box is not None
+                    assert export_box['y']>=0 and export_box['y']+export_box['height']<=900
+                    page.set_viewport_size({'width':390,'height':844})
+                    overflow=page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+                    assert overflow<=2, f'Mobile editor overflow: {overflow}px'
+                    page.set_viewport_size({'width':1440,'height':900})
                     assert not errors, errors
                     with page.expect_download(timeout=270000) as download_info:
                         page.locator('button.export-button').click()

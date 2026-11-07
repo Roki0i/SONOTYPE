@@ -21,6 +21,8 @@ export function App(){
   const [seconds,setSeconds]=useState(15);
   const [platform,setPlatform]=useState<SocialId>('shorts');
   const [showSafeArea,setShowSafeArea]=useState(false);
+  const [previewWidth,setPreviewWidth]=useState(460);
+  const [settingsTab,setSettingsTab]=useState<'content'|'style'>('content');
   const [notes,setNotes]=useState<Note[]>(demoNotes);
   const [analysis,setAnalysis]=useState<AudioAnalysis>(demoAnalysis);
   const [source,setSource]=useState(DEMO_AUDIO_URL);
@@ -175,7 +177,7 @@ export function App(){
             <span className="template-description">{entry.description}</span>
           </button>)}
       </div>
-      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v0.7</span></div>
+      <div className="aside-foot">{IS_PAGES?'WEB EDITION':'LOCAL EDITION'} <span>v0.8</span></div>
     </aside>
 
     <main className="editor-stage">
@@ -188,13 +190,19 @@ export function App(){
         <div className="canvas-toolbar">
           <span><b>プレビュー</b> / {TEMPLATES.find(t=>t.id===templateId)?.name}</span>
           <div className="canvas-display-options">
-            <span>9:16 <span className="toolbar-dot">•</span> 1080 × 1920 <span className="toolbar-dot">•</span> 30 FPS</span>
+            <span className="canvas-format">9:16 <span className="toolbar-dot">•</span> 1080 × 1920 <span className="toolbar-dot">•</span> 30 FPS</span>
+            <div className="preview-zoom" role="group" aria-label="プレビューサイズ">
+              {([{size:340,label:'小'},{size:460,label:'標準'},{size:550,label:'大'}] as const).map(option=>
+                <button key={option.size} type="button" className="preview-zoom-button"
+                  aria-pressed={previewWidth===option.size}
+                  onClick={()=>setPreviewWidth(option.size)}>{option.label}</button>)}
+            </div>
             <button type="button" className="guide-toggle" aria-pressed={showSafeArea}
               onClick={()=>setShowSafeArea(value=>!value)}>{showSafeArea?'ガイドを隠す':'文字位置ガイド'}</button>
           </div>
         </div>
         <div className="preview-shell">
-          <div className="player-with-guide">
+          <div className="player-with-guide" style={{maxWidth:previewWidth}}>
             <Player key={seconds} component={TemplateScene} inputProps={props}
               durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
               controls style={{width:'100%',aspectRatio:'9 / 16'}}/>
@@ -212,6 +220,16 @@ export function App(){
 
     <aside className="settings-sidebar">
       <div className="settings-header"><span className="eyebrow">STEP 02 — MAKE IT YOURS</span><h2>カスタマイズ</h2></div>
+      <div className="settings-tabs" role="group" aria-label="設定カテゴリー">
+        <button type="button" className={'settings-tab'+(settingsTab==='content'?' active':'')}
+          aria-pressed={settingsTab==='content'} aria-controls="settings-content"
+          onClick={()=>setSettingsTab('content')}>素材・文字</button>
+        <button type="button" className={'settings-tab'+(settingsTab==='style'?' active':'')}
+          aria-pressed={settingsTab==='style'} aria-controls="settings-style"
+          onClick={()=>setSettingsTab('style')}>デザイン・投稿</button>
+      </div>
+      <div className="settings-scroll">
+        <div id="settings-content" hidden={settingsTab!=='content'}>
       <section className="settings-section">
         <h3>音源とジャケット</h3>
         <label className="upload-input">
@@ -240,6 +258,8 @@ export function App(){
         <label className="field-label" htmlFor="artist-name">アーティスト名</label>
         <input id="artist-name" className="text-field" value={artist} maxLength={64} onChange={e=>setArtist(e.target.value)}/>
       </section>
+        </div>
+        <div id="settings-style" hidden={settingsTab!=='style'}>
       <section className="settings-section">
         <h3>カラー</h3>
         <div className="theme-swatches" role="group" aria-label="カラーテーマ">
@@ -269,9 +289,11 @@ export function App(){
             className={seconds===n?'active':''} onClick={()=>setSeconds(n)}>{n}秒</button>)}
         </div>
       </section>
+        </div>
+      </div>
       <div className="export-panel">
         <div className="export-head"><span className="eyebrow">STEP 03 — EXPORT</span>
-          <span className="export-format">MP4 · H.264/AAC</span></div>
+          <span className="export-format">{selectedPlatform.name} · {seconds}秒 · MP4</span></div>
         <button className="export-button" type="button" disabled={loading||exporting}
           onClick={()=>void exportMp4()}>{exporting?'書き出し中…':'MP4を書き出す'} <span aria-hidden="true">↗</span></button>
         <button type="button" className="reset-button" onClick={resetDemo}

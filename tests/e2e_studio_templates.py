@@ -87,6 +87,13 @@ def main():
                     for i in (0, 1, 2, 3, 4):
                         cards.nth(i).click()
                         assert cards.nth(i).get_attribute("aria-pressed") == "true"
+                    # Editor settings are grouped into two retained-state tabs.
+                    tabs = page.locator("button.settings-tab")
+                    assert tabs.count() == 2
+                    tabs.nth(1).click()
+                    assert tabs.nth(1).get_attribute("aria-pressed") == "true"
+                    assert page.locator("#settings-style").is_visible()
+                    assert not page.locator("#settings-content").is_visible()
                     platforms = page.locator("button.platform-option")
                     assert platforms.count() == 3, "Expected three publishing presets"
                     for i in (0, 1, 2):
@@ -96,18 +103,37 @@ def main():
                     assert page.locator(".safe-zone-guide").count() == 1
                     page.locator("button.guide-toggle").click()
                     assert page.locator(".safe-zone-guide").count() == 0
-                    page.locator("#song-title").fill("CI TEST TRACK")
-                    page.locator("#artist-name").fill("CI TEST ARTIST")
                     page.locator("button.theme-option.theme-violet").click()
                     assert page.locator("button.theme-option.theme-violet").get_attribute("aria-pressed") == "true"
                     page.locator("button.length-options").count()  # Keep original test independent of CSS layout
                     page.locator("div.length-options button").first.click()
                     assert page.locator("div.length-options button").first.get_attribute("aria-pressed") == "true"
+                    tabs.first.click()
+                    assert page.locator("#settings-content").is_visible()
+                    assert not page.locator("#settings-style").is_visible()
+                    page.locator("#song-title").fill("CI TEST TRACK")
+                    page.locator("#artist-name").fill("CI TEST ARTIST")
+                    # Preview width is user adjustable, without changing composition dimensions.
+                    sizes = page.locator("button.preview-zoom-button")
+                    assert sizes.count() == 3
+                    sizes.last.click()
+                    assert sizes.last.get_attribute("aria-pressed") == "true"
+                    assert page.locator(".player-with-guide").bounding_box()["width"] >= 500
+                    # Export is pinned in the side panel even with scrolled settings.
+                    export_box = page.locator("button.export-button").bounding_box()
+                    assert export_box is not None
+                    assert export_box["y"] >= 0 and export_box["y"] + export_box["height"] <= 900
 
                     page.locator('input[aria-label="ジャケット画像を選択"]').set_input_files(
                         {"name":"test-cover.png", "mimeType":"image/png", "buffer":test_png()}
                     )
                     page.screenshot(path=str(RESULTS/"studio-editor.png"), full_page=True)
+                    # Responsive mobile UI should not have horizontal page overflow.
+                    page.set_viewport_size({"width":390,"height":844})
+                    overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+                    assert overflow <= 2, f"Mobile editor overflow: {overflow}px"
+                    assert page.locator("button.settings-tab").count() == 2
+                    page.set_viewport_size({"width":1440,"height":900})
                     if errors:
                         raise RuntimeError("React page errors: " + " | ".join(errors))
 
