@@ -111,7 +111,7 @@ export function App(){
         }
         const {getBlob}=await renderMediaOnWeb({
           composition:{id:'OTO-Web-Export',component:TemplateScene,
-            width:1080,height:1920,fps:FPS,durationInFrames:seconds*FPS,calculateMetadata:null},
+            width:1080,height:1920,fps:FPS,durationInFrames:seconds*FPS,defaultProps:props},
           inputProps:props,
           container:'mp4',videoCodec:'h264',audioCodec:'aac',
           outputTarget:'arraybuffer',
