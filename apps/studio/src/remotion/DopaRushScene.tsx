@@ -61,7 +61,7 @@ export const DopaRushScene:React.FC<SceneProps>=({
         {artwork?
           <Img src={artwork} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:
           <div style={{width:'100%',height:'100%',display:'grid',placeItems:'center',
-            background:'conic-gradient(from '+(frame*1.1)+'deg,'+p.primary+','+p.second+','#10142b,'+p.primary+')'}}>
+            background:'conic-gradient(from '+(frame*1.1)+'deg,'+p.primary+','+p.second+',#10142b,'+p.primary+')'}}>
             <div style={{width:370,height:370,borderRadius:'50%',border:'45px solid #10142b',
               display:'grid',placeItems:'center',boxShadow:'0 0 0 25px #ffffff55'}}>
               <div style={{width:92,height:92,borderRadius:'50%',background:'#10142b'}}/>
