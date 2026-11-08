@@ -9,9 +9,9 @@ type Props={
 export function LandingPage({onStart,onPick}:Props){
   return <div className="oto-home">
     <header className="oto-home-nav">
-      <a className="oto-home-logo" href="#home" aria-label="OTO Studio ホーム">
-        <span className="oto-home-symbol" aria-hidden="true">O∿</span>
-        <strong>OTO <span>STUDIO</span></strong>
+      <a className="oto-home-logo" href="#home" aria-label="SONOTYPE ホーム">
+        <span className="oto-home-symbol" aria-hidden="true">≋</span>
+        <strong>SONOTYPE</strong>
       </a>
       <nav aria-label="ページ内ナビゲーション">
         <a href="#oto-templates">スタイル</a>
@@ -34,7 +34,7 @@ export function LandingPage({onStart,onPick}:Props){
         <div className="oto-hero-stage" aria-label="制作イメージ">
           <div className="oto-art-frame" aria-hidden="true">
             <div className="oto-art-inner">
-              <div className="oto-art-top"><span>OTO / 001</span><span>◉ REC</span></div>
+              <div className="oto-art-top"><span>SONOTYPE / 001</span><span>◉ REC</span></div>
               <div className="oto-art-disc"><div className="oto-art-disc-core"/></div>
               <div className="oto-art-title">SOUND<br/>IN MOTION.</div>
               <div className="oto-art-wave">{Array.from({length:20},(_,i)=><i key={i} style={{height:(16+(i*37%76))+'%'}}/>)}</div>
@@ -83,7 +83,7 @@ export function LandingPage({onStart,onPick}:Props){
     </main>
 
     <footer className="oto-home-footer">
-      <div><strong>OTO STUDIO</strong><p>音源・画像はブラウザで処理。保存データはサイトデータ削除で消える場合があります。外部テレメトリ通信が発生する場合があります。</p></div>
+      <div><strong>SONOTYPE</strong><p>音源・画像はブラウザで処理。保存データはサイトデータ削除で消える場合があります。外部テレメトリ通信が発生する場合があります。</p></div>
       <a href="https://github.com/Roki0i/oto-signal-studio" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </footer>
   </div>;

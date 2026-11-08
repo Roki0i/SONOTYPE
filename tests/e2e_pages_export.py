@@ -74,6 +74,8 @@ def main():
                 try:
                     page.goto(URL,wait_until='networkidle',timeout=90000)
                     assert page.locator('.oto-hero').is_visible()
+                    assert page.title().startswith('SONOTYPE')
+                    assert 'SONOTYPE' in page.locator('.oto-home-logo').inner_text()
                     assert page.locator('button.oto-home-template').count()==5
                     # A new visitor sees a discoverable homepage before entering the editor.
                     page.set_viewport_size({'width':390,'height':844})
@@ -81,6 +83,7 @@ def main():
                     page.set_viewport_size({'width':1440,'height':900})
                     page.locator('button.oto-main-cta').first.click()
                     assert page.locator('button.template-card').count()==5
+                    assert 'SONOTYPE' in page.locator('.brand').inner_text()
                     assert page.locator('button.platform-option').count()==3
                     assert page.locator('text=ブラウザ制作').count()>0
                     assert page.evaluate("fetch('./demo.wav').then(r=>r.ok)")

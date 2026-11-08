@@ -1,6 +1,6 @@
 /**
  * One local, user-initiated project snapshot. The actual media Files are stored
- * in IndexedDB on this device, not transmitted to OTO servers or localStorage.
+ * in IndexedDB on this device, not transmitted to SONOTYPE servers or localStorage.
  */
 import {isTemplateId, type TemplateId} from './templates.mjs';
 import {isSocialId, type SocialId} from './social-presets.mjs';
