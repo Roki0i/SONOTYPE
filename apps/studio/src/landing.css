@@ -43,25 +43,14 @@
 .oto-home-template:nth-child(3){grid-column:span 4}
 .oto-home-template:nth-child(4){grid-column:span 7}
 .oto-home-template:nth-child(5){grid-column:span 5}
-.oto-home-template-art{position:relative;display:grid;place-items:center;overflow:hidden;aspect-ratio:1.1;background:#242723}
+.oto-home-template-art{position:relative;display:grid;place-items:center;overflow:hidden;aspect-ratio:1.1;background:#292b27}
 .oto-home-template:nth-child(1) .oto-home-template-art{aspect-ratio:1.15}
 .oto-home-template:nth-child(2) .oto-home-template-art{aspect-ratio:.67}
 .oto-home-template:nth-child(3) .oto-home-template-art{aspect-ratio:.95}
 .oto-home-template:nth-child(4) .oto-home-template-art{aspect-ratio:1.75}
 .oto-home-template:nth-child(5) .oto-home-template-art{aspect-ratio:1.2}
-.oto-home-template-art:before,.oto-home-template-art:after{content:"";position:absolute;pointer-events:none}
-.oto-home-template-signal .oto-home-template-art{background:#1c2526}
-.oto-home-template-signal .oto-home-template-art:before{inset:15%;border-left:1px solid #81a6a6;border-right:1px solid #81a6a6;background:repeating-linear-gradient(90deg,transparent 0 14px,#70959677 15px 16px,transparent 17px 30px)}
-.oto-home-template-retro-grid .oto-home-template-art{background:#bcbab1;color:#252622}
-.oto-home-template-retro-grid .oto-home-template-art:before{inset:10%;background:repeating-linear-gradient(0deg,#55554e33 0 1px,transparent 1px 38px),repeating-linear-gradient(90deg,#55554e33 0 1px,transparent 1px 38px)}
-.oto-home-template-lofi-player .oto-home-template-art{background:#453a33}
-.oto-home-template-lofi-player .oto-home-template-art:before{width:66%;aspect-ratio:1;border:18px double #a18e80;border-radius:50%;opacity:.65}
-.oto-home-template-cover-focus .oto-home-template-art{background:#8d9385;color:#1a2119}
-.oto-home-template-cover-focus .oto-home-template-art:before{height:75%;aspect-ratio:1;background:#d5d0bd;box-shadow:20px 20px 0 #525e52}
-.oto-home-template-dopa-rush .oto-home-template-art{background:#6b4539}
-.oto-home-template-dopa-rush .oto-home-template-art:before{inset:12% 0;background:repeating-linear-gradient(100deg,transparent 0 26px,#cba58288 27px 30px,transparent 31px 43px)}
 .oto-card-no{position:absolute;top:17px;left:18px;font:500 12px Georgia,"Times New Roman",serif;letter-spacing:.1em;z-index:1}
-.oto-card-signal{position:relative;z-index:1;font:500 clamp(45px,5vw,90px) Georgia,"Times New Roman",serif;letter-spacing:-.055em;mix-blend-mode:normal;text-shadow:none}
+
 .oto-card-action{position:absolute;right:20px;bottom:12px;font-size:22px;z-index:1}
 .oto-home-template-art{transition:filter .18s}
 .oto-home-template:hover .oto-home-template-art{filter:brightness(1.2)}
@@ -80,7 +69,7 @@
 .oto-home-footer p{font-size:11px;color:#87877e;line-height:1.9;max-width:610px;margin:14px 0 0}
 .oto-home-footer a{font-size:13px;white-space:nowrap;border-bottom:1px solid #88857c;padding-bottom:5px}
 .oto-home-footer a:hover{border-color:var(--paper)}
-@media(max-width:1050px){.oto-hero{min-height:600px;grid-template-columns:minmax(0,.98fr) minmax(0,1.02fr)}.oto-hero h1{font-size:clamp(66px,8vw,100px)}.oto-hero-stage{height:510px}.oto-home-gallery{column-gap:15px}.oto-card-signal{font-size:clamp(36px,5vw,70px)}}
-@media(max-width:740px){.oto-home-nav{padding:22px 24px}.oto-home-nav nav>a{display:none}.oto-home-logo{font-size:17px}.oto-nav-cta{min-width:0;padding:10px 12px}.oto-hero{display:flex;flex-direction:column;align-items:stretch;min-height:0;padding:70px 24px 52px}.oto-hero:before{left:24px;right:24px}.oto-hero h1{font-size:clamp(65px,13vw,91px);margin:28px 0 18px}.oto-hero-actions{gap:17px;margin-top:30px}.oto-hero-fine{margin-top:24px}.oto-hero-stage{height:auto;margin:20px -55px 0 -24px}.sono-groove-art{width:100%;max-width:740px}.oto-specs{padding:20px 24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}.oto-home-section,.oto-guide{padding:78px 24px}.oto-section-header{display:block;margin-bottom:33px}.oto-section-header h2{margin:15px 0 0}.oto-home-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 13px}.oto-home-template,.oto-home-template:nth-child(n){grid-column:span 1}.oto-home-template:nth-child(1){grid-column:span 2}.oto-home-template:nth-child(1) .oto-home-template-art{aspect-ratio:1.55}.oto-home-template:nth-child(n+2) .oto-home-template-art{aspect-ratio:.9}.oto-card-signal{font-size:clamp(36px,10vw,68px)}.oto-home-template-text{display:block}.oto-home-template-text small{display:block;margin-top:8px}.oto-guide-steps li{grid-template-columns:62px 1fr}.oto-guide-end{display:block}.oto-guide-end .oto-main-cta{margin-top:12px}.oto-home-footer{padding:29px 24px 55px;flex-wrap:wrap}}
+@media(max-width:1050px){.oto-hero{min-height:600px;grid-template-columns:minmax(0,.98fr) minmax(0,1.02fr)}.oto-hero h1{font-size:clamp(66px,8vw,100px)}.oto-hero-stage{height:510px}.oto-home-gallery{column-gap:15px}}
+@media(max-width:740px){.oto-home-nav{padding:22px 24px}.oto-home-nav nav>a{display:none}.oto-home-logo{font-size:17px}.oto-nav-cta{min-width:0;padding:10px 12px}.oto-hero{display:flex;flex-direction:column;align-items:stretch;min-height:0;padding:70px 24px 52px}.oto-hero:before{left:24px;right:24px}.oto-hero h1{font-size:clamp(65px,13vw,91px);margin:28px 0 18px}.oto-hero-actions{gap:17px;margin-top:30px}.oto-hero-fine{margin-top:24px}.oto-hero-stage{height:auto;margin:20px -55px 0 -24px}.sono-groove-art{width:100%;max-width:740px}.oto-specs{padding:20px 24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}.oto-home-section,.oto-guide{padding:78px 24px}.oto-section-header{display:block;margin-bottom:33px}.oto-section-header h2{margin:15px 0 0}.oto-home-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 13px}.oto-home-template,.oto-home-template:nth-child(n){grid-column:span 1}.oto-home-template:nth-child(1){grid-column:span 2}.oto-home-template:nth-child(1) .oto-home-template-art{aspect-ratio:1.55}.oto-home-template:nth-child(n+2) .oto-home-template-art{aspect-ratio:.9}.oto-home-template-text{display:block}.oto-home-template-text small{display:block;margin-top:8px}.oto-guide-steps li{grid-template-columns:62px 1fr}.oto-guide-end{display:block}.oto-guide-end .oto-main-cta{margin-top:12px}.oto-home-footer{padding:29px 24px 55px;flex-wrap:wrap}}
 @media(max-width:400px){.oto-home-nav nav{gap:12px}.oto-nav-cta{font-size:12px;gap:8px}.oto-hero h1{font-size:64px}.oto-hero-lead{font-size:13px}.oto-main-cta{min-width:180px}}
 @media(prefers-reduced-motion:reduce){.oto-nav-cta,.oto-main-cta,.oto-home-template-art{transition:none}}
