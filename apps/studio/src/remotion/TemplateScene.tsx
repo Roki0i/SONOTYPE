@@ -103,7 +103,6 @@ const SpectralCards:React.FC<{bass:number[];level:number;bins:number[];frame:num
   </div>;
 
 export const TemplateScene:React.FC<SceneProps>=(props)=>{
-  // Preserve the original visualizer and frame-level MIDI regression unchanged.
   if(!props.templateId || props.templateId==='signal')return <SignalScene {...props}/>;
   if(props.templateId==='dopa-rush')return <DopaRushScene {...props}/>;
   return <ShowcaseScene {...props}/>;

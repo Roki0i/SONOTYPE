@@ -12,8 +12,8 @@ import {LandingPage} from './LandingPage';
 import {TemplatePreview} from './TemplatePreview';
 import {ClipWaveform} from './ClipWaveform';
 import {saveProject,loadProject,clearProject} from './project-storage';
+import {renderMp4,VIDEO_FPS as FPS} from './video-export';
 
-const FPS=30;
 const THEMES:Theme[]=['arctic','mint','violet'];
 const MAX_COVER=5*1024*1024;
 const IS_PAGES=import.meta.env.VITE_PAGES_BUILD==='true';
@@ -141,45 +141,15 @@ export function App(){
     if(exporting||loading)return;
     setExporting(true);setStatus('MP4を作成しています。ウィンドウを閉じずにお待ちください。');
     try{
-      let video:Blob;
-      if(IS_PAGES){
-        // GitHub Pages has no server; render and encode entirely in this browser.
-        const {canRenderMediaOnWeb,renderMediaOnWeb}=await import('@remotion/web-renderer');
-        const support=await canRenderMediaOnWeb({
-          container:'mp4',videoCodec:'h264',audioCodec:'aac',width:1080,height:1920,
-          outputTarget:'arraybuffer'
-        });
-        if(!support.canRender){
-          throw Error('このブラウザでは音声付きMP4を書き出せません: '+
-            support.issues.map(issue=>issue.message).join(' / '));
-        }
-        const {getBlob}=await renderMediaOnWeb({
-          composition:{id:'OTO-Web-Export',component:TemplateScene,
-            width:1080,height:1920,fps:FPS,durationInFrames:seconds*FPS,defaultProps:props},
-          inputProps:props,
-          container:'mp4',videoCodec:'h264',audioCodec:'aac',
-          outputTarget:'arraybuffer',
-          onProgress:({progress})=>setStatus('ブラウザでMP4を生成中: '+Math.round(progress*100)+'%')
-        });
-        video=await getBlob();
-      }else{
-        // Keep the existing trusted loopback workflow for Windows/Mac local users.
-        const file=audioFile.current??new File([await(await fetch(DEMO_AUDIO_URL)).blob()],
-          'demo.wav',{type:'audio/wav'});
-        const form=new FormData();
-        form.append('audio',file);
-        if(coverFile.current)form.append('cover',coverFile.current);
-        form.append('props',JSON.stringify({
-          title:props.title,artist:props.artist,templateId:props.templateId,
-          theme,seconds,startFrame:selectedStartFrame,notes:clipNotes,...frames
-        }));
-        const response=await fetch('/api/export',{method:'POST',body:form});
-        if(!response.ok){
-          const error=await response.json().catch(()=>({error:'書き出しに失敗しました'}));
-          throw Error(typeof error.error==='string'?error.error:'書き出しに失敗しました');
-        }
-        video=await response.blob();
-      }
+      const video=await renderMp4({
+        isPages:IS_PAGES,
+        props,
+        seconds,
+        audioFile:audioFile.current,
+        coverFile:coverFile.current,
+        demoAudioUrl:DEMO_AUDIO_URL,
+        onProgress:(progress)=>setStatus('ブラウザでMP4を生成中: '+Math.round(progress*100)+'%')
+      });
       if(video.size<1000)throw Error('空の動画が生成されました');
       const url=URL.createObjectURL(video);
       const a=document.createElement('a');
