@@ -193,7 +193,7 @@ def main():
                     with page.expect_download(timeout=240000) as download_info:
                         page.locator("button.export-button").click()
                     download = download_info.value
-                    assert download.suggested_filename.startswith("oto-tiktok-")
+                    assert download.suggested_filename.startswith("sonotype-tiktok-")
                     path = RESULTS / "studio-upload-cover.mp4"
                     download.save_as(str(path))
                     bytes_count = inspect_mp4(path)
