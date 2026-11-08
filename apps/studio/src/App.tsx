@@ -153,7 +153,7 @@ export function App(){
       if(video.size<1000)throw Error('空の動画が生成されました');
       const url=URL.createObjectURL(video);
       const a=document.createElement('a');
-      a.href=url;a.download='oto-'+selectedPlatform.filename+'-'+Date.now()+'.mp4';
+      a.href=url;a.download='sonotype-'+selectedPlatform.filename+'-'+Date.now()+'.mp4';
       document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),60000);
       setStatus('MP4を保存しました（'+(video.size/1048576).toFixed(1)+' MiB）');

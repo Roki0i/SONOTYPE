@@ -1,44 +1,60 @@
 # SONOTYPE
 
-音楽から **YouTube Shorts / Instagram Reels / TikTok向けの縦型MP4**を作るWebアプリ。
+**音楽を、短い縦型映像に。**
 
-**[Web版を使う](https://roki0i.github.io/oto-signal-studio/)**
+YouTube Shorts・Instagram Reels・TikTok向けの音楽ビジュアル動画を、ブラウザで編集・書き出しできる個人開発Webアプリです。音源とテンプレートを選び、曲名・配色・使用区間を調整してMP4を生成できます。
 
-## できること
+**[Webアプリを試す](https://roki0i.github.io/oto-signal-studio/)** · **[編集画面を開く](https://roki0i.github.io/oto-signal-studio/#editor)** · **[8秒の完成動画を見る](https://roki0i.github.io/oto-signal-studio/sonotype-demo.mp4)**
 
-- 5種類の音楽ビジュアルテンプレート（Signal Lab / Retro Grid / After Hours / Cover Flow / Dopa Rush）
-- 音源とジャケット画像（任意）、MIDI（任意）を読み込み、曲名・色・再生位置を編集
-- 8 / 15 / 30秒の9:16動画をプレビューし、1080×1920・30fps・H.264/AACのMP4に書き出し
-- 1件の編集プロジェクトをブラウザ内のIndexedDBへ保存・復元・削除
+[![CI](https://github.com/Roki0i/oto-signal-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Roki0i/oto-signal-studio/actions/workflows/ci.yml)
+[![GitHub Pages](https://github.com/Roki0i/oto-signal-studio/actions/workflows/pages.yml/badge.svg)](https://github.com/Roki0i/oto-signal-studio/actions/workflows/pages.yml)
 
-## 試し方
+## 使い方
 
-音源を用意しなくても、Web版のデモ音源で動作を確認できます。
+**音源を用意しなくても試せます。** 初期状態でオリジナルのデモ音源が設定されています。
 
-1. **動画をつくる**から編集画面を開く
-2. テンプレートを選び、必要なら音源・ジャケット・曲名を変更する
-3. **MP4を書き出す**を押して動画を保存する
+1. 「動画をつくる」から編集画面に進む。
+2. 5種類のスタイルを選び、必要に応じて音源・ジャケット画像・曲名・配色を変更する。波形から使用区間も選択できる。
+3. 「MP4を書き出す」を押す。対応ブラウザでは端末内で動画を生成する。
 
-アカウント登録は不要です。
+[完成動画のサンプル（8秒・540×960・MP4）](https://roki0i.github.io/oto-signal-studio/sonotype-demo.mp4)は、同梱のオリジナルデモ音源からGitHub Actionsで生成したものです。通常の編集画面で書き出す動画は**1080×1920・30fps・H.264/AAC**です。
 
-## 実装のポイント
+## 主な機能
 
-- **音声解析**：PCMからフレームごとの音量・周波数帯（FFT）を計算し、音源の切り出し位置と映像を同期
-- **プレビューと出力の一致**：5種類の映像テンプレートに同じRemotionコンポーネントを使用
-- **2つの出力環境**：公開Web版はブラウザ内のWebCodecs、ローカル版はループバックAPI経由でMP4を生成
-- **回帰テスト**：Linux Chromium・Windows Chrome/Edgeでの操作検証、H.264/AAC・音画同期のテストをGitHub Actionsに統合
+- **音楽に反応する5種類のテンプレート**：Signal Lab / Retro Grid / After Hours / Cover Flow / Dopa Rush
+- **音声解析**：PCMからフレーム単位で音量（RMS）と周波数帯（FFT）を計測。MIDIファイルの読み込みにも対応
+- **切り出し**：波形を見ながら1秒単位で開始位置を指定。動画尺は8秒・15秒・30秒
+- **プレビューと出力**：Remotionの同じ映像コンポーネントを使用
+- **ブラウザ内保存**：1作品の設定・音源・画像をIndexedDBへ保存・復元
 
-## 制限・データの取り扱い
+## 技術構成と設計
 
-- 音源は **25MiB / 1時間以内**、画像は **5MiB以内**、MIDIは **5MiB以内**。切り出し開始位置は1秒単位です。
-- Web版は対応ブラウザのWebCodecsで動画を端末内生成します。SONOTYPE専用の動画変換サーバーへ音源・画像を送信しません。ただしRemotionなどのテレメトリ通信は発生する場合があります。
-- 保存した音源・画像・設定は**そのブラウザだけ**に保持されます。サイトデータ削除やストレージ制限によって消える場合があり、別端末同期やプロジェクトのダウンロードは未対応です。
-- 端末性能やブラウザによって動画出力できない場合があります。スマートフォンでのMP4出力動作は未保証です。
-- 他者の音源・ジャケットを使う場合は公開・投稿に必要な権利を確認してください。
+| 領域 | 技術 | 選定・実装のポイント |
+| --- | --- | --- |
+| UI | React / TypeScript / Vite | テンプレート・編集画面の状態を管理 |
+| 映像 | Remotion | プレビューとレンダリングで映像シーンを共通化 |
+| 音声 | Web Audio API / FFT / MIDI | 音源をデコードし、映像の30fpsに合わせて解析 |
+| 公開Web版 | WebCodecs / `@remotion/web-renderer` | 専用の動画生成サーバーを置かず、ブラウザ内でMP4を出力 |
+| ローカル版 | Remotion / ループバックAPI | 同じ編集データを使ってローカルで書き出し |
+| 保存 | IndexedDB | アカウント不要。素材と設定は利用したブラウザ内に保持 |
+| 品質確認 | GitHub Actions / Playwright / FFprobe | ブラウザ操作、保存・復元、映像・音声コーデックと同期を検証 |
 
-## 開発
+```mermaid
+flowchart TD
+    A["音源・ジャケット・MIDI"] --> B["React エディタ"]
+    B --> C["PCM解析・切り出し"]
+    C --> D["Remotion 映像シーン"]
+    B --> E["IndexedDB（ブラウザ内保存）"]
+    D --> F{"実行環境"}
+    F -->|GitHub Pages| G["WebCodecsでMP4生成"]
+    F -->|ローカル| H["Remotion APIでMP4生成"]
+```
 
-Node.js 24、Python 3、ローカルMP4検証にはFFmpegを使用します。
+公開サイトはGitHub Pagesでホスティングしています。**音源・画像をSONOTYPE専用の動画生成サーバーに送信しません。** ただし、Remotionなどのライブラリによるテレメトリ通信が発生する場合があります。
+
+## ローカル実行・検証
+
+Node.js 24推奨、Python 3、ローカル動画生成の確認にはFFmpegが必要です。
 
 ```bash
 cd apps/studio
@@ -46,29 +62,27 @@ npm ci
 npm run dev
 ```
 
-ローカル編集画面：`http://127.0.0.1:5173/`。ローカルモードは127.0.0.1のRemotion書き出しAPIを使用します。
+編集画面：`http://127.0.0.1:5173/`
 
 ```bash
-npm run build            # React / TypeScript
-npm run render:demo      # RemotionデモMP4（FFmpeg環境）
+# apps/studio で実行
+npm run build          # TypeScript検証・Viteビルド
+npm run render:demo    # ローカルのデモMP4生成
 npm audit --audit-level=high
 ```
 
-GitHub Pages向けの静的ビルドと公開は `.github/workflows/pages.yml` が担当します。検証は `.github/workflows/ci.yml` にまとまっています。自動テストにはNode/Pythonユニットテスト、Linux Chromium・Windows Chrome/Edge、音画同期、MP4出力検査が含まれます。
+GitHub Actionsの[CI](https://github.com/Roki0i/oto-signal-studio/actions/workflows/ci.yml)では、単体テスト・Linux Chromium・Windows Chrome/Edge・ブラウザ内MP4書き出し・音声同期を確認しています。公開ビルドは[Pagesワークフロー](https://github.com/Roki0i/oto-signal-studio/actions/workflows/pages.yml)で検証・配信します。
 
-```bash
-# ローカルでPages用バンドルを作成（macOS/Linux）
-VITE_PAGES_BUILD=true npm run build:pages
-```
+## 制限と注意事項
 
-### コードの構成
+- 音源：WAV / MP3 / M4A / AAC / OGG（最大25MiB、長さ1時間以内）。画像：PNG / JPEG / WebP（最大5MiB）。MIDI：最大5MiB。
+- ブラウザや端末性能によりMP4の書き出しができない場合があります。**スマートフォンでのMP4出力は未保証**です。
+- 保存データは利用したブラウザ内だけに保持されます。サイトデータの削除・ストレージ制限で失われる可能性があり、別端末同期はできません。
+- 他者の音源や画像を使用する場合は、公開・投稿に必要な利用権を確認してください。
+- Remotionの商用利用では[ライセンス条件](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md)を確認してください。
 
-- `apps/studio/src/` — Reactエディタ、トップページ、音声解析と保存機能
-- `apps/studio/src/remotion/` — 5種類の動画シーンとプレビュー/書き出し
-- `apps/studio/scripts/` — デモ生成準備、ローカル書き出しAPI、各種検査
-- `tests/` — ブラウザE2Eテスト
-- `generate_demo.py` — オリジナルの検証用WAV/MIDI生成
+### リポジトリ構成
 
-**互換性維持：** リポジトリ直下の `server.py` / `index.html` / `src/` は初期のPython/Canvas版です。公開サイトの実装には使われませんが、旧版テストと互換性確認のため残しています。旧版を使う場合はルートで `python3 server.py` を実行します。
+`apps/studio/src/` が現行のReactエディタ、`apps/studio/src/remotion/` が映像シーン、`tests/` がE2E・回帰テストです。
 
-Remotionの商用利用時は [Remotionのライセンス条件](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md) を確認してください。
+ルート直下の`server.py`・`index.html`・`src/`は初期のPython/Canvas版です。現行サイトでは使用していませんが、旧版の回帰テストが参照するため残しています。既存の`OTO-*`コンポジションIDや一部内部識別子も、互換性を維持する目的で変更していません。

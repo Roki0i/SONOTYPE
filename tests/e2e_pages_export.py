@@ -224,7 +224,7 @@ def main():
                     with page.expect_download(timeout=270000) as download_info:
                         page.locator('button.export-button').click()
                     download=download_info.value
-                    assert download.suggested_filename.startswith('oto-shorts-')
+                    assert download.suggested_filename.startswith('sonotype-shorts-')
                     target=RESULTS/'oto-pages-chromium.mp4'
                     download.save_as(str(target))
                     size=inspect(target)
