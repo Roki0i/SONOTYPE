@@ -111,7 +111,7 @@ def main():
                     ]
                     for index,label in enumerate(labels):
                         page.locator('button.template-card').nth(index).click()
-                        assert page.locator('.player-with-guide').get_by_text(label,exact=True).count()>0, label
+                        page.locator('.player-with-guide').get_by_text(label,exact=True).wait_for(state='visible',timeout=10000)
                     assert page.locator("button.settings-tab").count()==2
                     assert page.locator("#settings-content").is_visible()
                     page.locator("button.preview-zoom-button").last.click()
