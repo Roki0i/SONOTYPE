@@ -17,7 +17,7 @@ from e2e_studio_templates import test_png, seek_wav
 
 ROOT=Path(__file__).resolve().parents[1]
 STUDIO=ROOT/'apps'/'studio'
-URL='http://127.0.0.1:4173/oto-signal-studio/'
+URL='http://127.0.0.1:4173/SONOTYPE/'
 RESULTS=ROOT/'test-results'
 
 
