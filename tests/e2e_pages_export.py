@@ -80,12 +80,14 @@ def main():
                     assert page.title().startswith('SONOTYPE')
                     assert 'SONOTYPE' in page.locator('.oto-home-logo').inner_text()
                     assert page.locator('button.oto-home-template').count()==5
+                    assert page.locator('button.oto-home-template .template-preview').count()==5
                     # A new visitor sees a discoverable homepage before entering the editor.
                     page.set_viewport_size({'width':390,'height':844})
                     assert page.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth")<=2
                     page.set_viewport_size({'width':1440,'height':900})
                     page.locator('button.oto-main-cta').first.click()
                     assert page.locator('button.template-card').count()==5
+                    assert page.locator('button.template-card .template-preview').count()==5
                     assert 'SONOTYPE' in page.locator('.brand').inner_text()
                     assert page.locator('button.platform-option').count()==3
                     assert page.locator('text=ブラウザ制作').count()>0
