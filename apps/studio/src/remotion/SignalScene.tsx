@@ -25,7 +25,7 @@ export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, start
     <AbsoluteFill style={{background: c.background, fontFamily: 'Consolas, monospace', color: c.navy}}>
       {resolvedAudioSrc ? <Audio src={resolvedAudioSrc} trimBefore={startFrame}/> : null}
       <div style={{height: 533, background: c.navy, color: '#e9f7ff', padding: 50}}>
-        <div style={{fontSize: 28, fontWeight: 900, letterSpacing: 3}}>OTO / SIGNAL STUDIO</div>
+        <div style={{fontSize: 28, fontWeight: 900, letterSpacing: 3}}>SONOTYPE / SIGNAL STUDIO</div>
         <div style={{color: c.light, fontSize: 18, marginTop: 17}}>MUSIC / DATA / FRAME ENGINE</div>
         <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 42, marginBottom: 16, fontSize: 19}}>
           <span>PIANO ROLL</span><span>{notes.length} NOTES</span>
@@ -100,7 +100,7 @@ export const SignalScene: React.FC<SceneProps> = ({title, theme, audioSrc, start
       </div>
       <div style={{position:'absolute',bottom:0,left:0,right:0,height:52,padding:'16px 50px',
         display:'flex',justifyContent:'space-between',background:c.navy,color:c.light,fontSize:17,fontWeight:800}}>
-        <span>OTO / STUDIO v0.2</span><span>{title.slice(0,28).toUpperCase()}</span>
+        <span>SONOTYPE / STUDIO</span><span>{title.slice(0,28).toUpperCase()}</span>
       </div>
     </AbsoluteFill>
   );

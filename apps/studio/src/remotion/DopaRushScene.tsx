@@ -48,7 +48,7 @@ export const DopaRushScene:React.FC<SceneProps>=({
       <span style={{background:p.primary,color:'#080C1D',padding:'13px 20px',borderRadius:7}}>
         BEAT REACTOR
       </span>
-      <span style={{opacity:.8}}>OTO / SHORTS</span>
+      <span style={{opacity:.8}}>SONOTYPE / SHORTS</span>
     </div>
 
     <div style={{position:'absolute',top:345,left:130,right:185,
