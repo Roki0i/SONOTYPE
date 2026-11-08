@@ -39,7 +39,7 @@ jobs:
           test -s dist/index.html
           test -s dist/demo.wav
           test -s dist/demo-analysis.json
-          grep -q '/oto-signal-studio/assets/' dist/index.html
+          grep -q '/SONOTYPE/assets/' dist/index.html
       - name: Render original 8-second portfolio demo
         run: |
           npx remotion render src/remotion/entry.ts OTO-Demo dist/sonotype-demo.mp4 --frames=0-239 --scale=0.5 --codec=h264 --concurrency=2
