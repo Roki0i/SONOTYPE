@@ -59,7 +59,7 @@ const SpectralCards:React.FC<{bass:number[];level:number;bins:number[];frame:num
 ({bass,level,bins,frame,accent,artist,title,cover,t,levels})=>
   <div style={{padding:'150px 32px 82px',height:'100%',background:'#c7c7c3',color:'#171718',...font}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:24,fontWeight:800,letterSpacing:4,marginBottom:26}}>
-      <span>OTO / VISUAL STUDIO</span><span>RETRO GRID 01</span>
+      <span>SONOTYPE / VISUAL STUDIO</span><span>RETRO GRID 01</span>
     </div>
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(3, 510px)',gap:14}}>
       <RetroPanel caption="◉  time" light>
@@ -131,7 +131,7 @@ const ShowcaseScene:React.FC<SceneProps> = ({templateId, title,artist='',theme,a
           border:'1px solid #88888838',boxShadow:'0 30px 65px #00000060'}}>
           <Cover src={resolvedCover} size={864} accent={p.accent} dark/>
         </div>
-        <div style={{fontSize:30,letterSpacing:5,color:p.accent,marginTop:88,...mono}}>NOW PLAYING / OTO</div>
+        <div style={{fontSize:30,letterSpacing:5,color:p.accent,marginTop:88,...mono}}>NOW PLAYING / SONOTYPE</div>
         <div style={{fontSize:76,fontWeight:800,lineHeight:1.13,marginTop:24,
           overflowWrap:'anywhere'}}>{title.slice(0,42)}</div>
         <div style={{fontSize:31,color:'#b5b3b1',marginTop:24}}>{artist.slice(0,54)||'Unknown artist'}</div>
@@ -146,13 +146,13 @@ const ShowcaseScene:React.FC<SceneProps> = ({templateId, title,artist='',theme,a
         <div style={{textAlign:'center',fontSize:48,marginTop:50,letterSpacing:32}}>◀  ▮▮  ▶</div>
         <div style={{position:'absolute',bottom:58,left:75,right:75,display:'flex',justifyContent:'space-between',
           fontSize:22,letterSpacing:3,color:'#8e969b',...mono}}>
-          <span>STAY WITH THE SOUND</span><span>OTO / STUDIO</span>
+          <span>STAY WITH THE SOUND</span><span>SONOTYPE / STUDIO</span>
         </div>
       </div>:
       <div style={{height:'100%',background:p.paper,color:p.ink,padding:'100px 76px',
         backgroundImage:'radial-gradient(ellipse at 50% 30%, '+p.accent+'55, transparent 60%)'}}>
         <div style={{display:'flex',justifyContent:'space-between',fontSize:25,letterSpacing:3,...mono}}>
-          <span>OTO / ARTWORK</span><span>03 — COVER FOCUS</span>
+          <span>SONOTYPE / ARTWORK</span><span>03 — COVER FOCUS</span>
         </div>
         <div style={{marginTop:205,boxShadow:'0 50px 90px #15203340',width:928,background:'#fff',padding:35}}>
           <Cover src={resolvedCover} size={858} accent={p.accent}/>
