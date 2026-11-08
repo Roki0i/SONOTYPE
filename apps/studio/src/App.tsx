@@ -10,6 +10,7 @@ import {decodeAudio, analyzeAudioSegment} from './audio-analysis';
 import {readMidi} from './midi';
 import {LandingPage} from './LandingPage';
 import {TemplatePreview} from './TemplatePreview';
+import {ClipWaveform} from './ClipWaveform';
 import {saveProject,loadProject,clearProject} from './project-storage';
 
 const FPS=30;
@@ -365,6 +366,12 @@ export function App(){
           <span>開始 <strong>{formatSeconds(clipStartSeconds)}</strong></span>
           <span>終了 <strong>{formatSeconds(Math.min(sourceDuration,clipStartSeconds+seconds))}</strong></span>
         </div>
+        <ClipWaveform
+          audio={decodedAudio} demoLevels={demoAnalysis.levels}
+          duration={sourceDuration} clipSeconds={seconds}
+          startFrame={selectedStartFrame} maxStartFrame={maxStartFrame}
+          disabled={loading||exporting||maxStartFrame===0}
+          onStartFrameChange={setStartFrame}/>
         <input id="clip-start" aria-label="切り出し開始位置" className="clip-range" type="range"
           min={0} max={maxStartFrame} step={FPS} value={selectedStartFrame}
           disabled={loading||exporting||maxStartFrame===0}
@@ -373,7 +380,7 @@ export function App(){
         <p className="setting-note">
           {maxStartFrame===0
             ? (sourceDuration<seconds?'音源が短いため、残りは無音になります。':'この動画尺では開始位置を変更できません。')
-            : '1秒単位で開始位置を選択。動画と波形・MIDIを同時に切り出します。'}
+            : '波形をタップ／ドラッグして開始位置を選択（1秒単位）。下のスライダーはキーボードでも操作できます。'}
         </p>
       </section>
       <section className="settings-section">
