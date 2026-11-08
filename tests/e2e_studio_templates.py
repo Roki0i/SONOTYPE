@@ -165,7 +165,15 @@ def main():
                     page.get_by_role("status").filter(has_text="音声を解析しました").wait_for(timeout=60000)
                     slider=page.locator("#clip-start")
                     assert slider.get_attribute("max")=="240"
+                    waveform=page.locator(".clip-waveform")
+                    assert waveform.get_attribute("data-waveform-source")=="uploaded"
+                    bounds=waveform.bounding_box()
+                    assert bounds is not None
+                    waveform.click(position={"x":bounds["width"]*.5,"y":bounds["height"]*.5})
+                    assert slider.input_value()=="240"
                     slider.focus()
+                    slider.press("Home")
+                    assert slider.input_value()=="0"
                     slider.press("End")
                     assert slider.input_value()=="240"
                     assert page.locator(".clip-positions").inner_text().find("0:08")>=0
