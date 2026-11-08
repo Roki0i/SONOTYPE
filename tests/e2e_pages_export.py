@@ -120,6 +120,7 @@ def main():
                     assert page.locator("#settings-style").is_visible()
                     page.locator('div.length-options button').first.click()
                     page.locator("button.settings-tab").first.click()
+                    assert page.locator('.clip-waveform').get_attribute('data-waveform-source')=='demo'
                     # Verify that user-provided blob audio and artwork are supported
                     # by web renderer, not only the bundled static demo.
                     page.locator('input[aria-label="音楽ファイルを選択"]').set_input_files(
@@ -128,7 +129,22 @@ def main():
                     page.get_by_role('status').filter(has_text='音声を解析しました').wait_for(timeout=60000)
                     clip=page.locator('#clip-start')
                     assert clip.get_attribute('max')=='240'
+                    waveform=page.locator('.clip-waveform')
+                    assert waveform.get_attribute('data-waveform-source')=='uploaded'
+                    assert waveform.locator('svg path').count()==2
+                    assert len(waveform.locator('svg path').first.get_attribute('d'))>100
+                    # Drag across the uploaded source: the selected 8s interval begins at 8s.
+                    bounds=waveform.bounding_box()
+                    assert bounds is not None
+                    y=bounds['y']+bounds['height']/2
+                    page.mouse.move(bounds['x']+bounds['width']*.2,y)
+                    page.mouse.down()
+                    page.mouse.move(bounds['x']+bounds['width']*.5,y,steps=5)
+                    page.mouse.up()
+                    assert clip.input_value()=='240'
                     clip.focus()
+                    clip.press('Home')
+                    assert clip.input_value()=='0'
                     clip.press('End')
                     assert clip.input_value()=='240'
                     assert '0:08' in page.locator('.clip-positions').inner_text()
@@ -144,6 +160,7 @@ def main():
                     page.get_by_role('status').filter(has_text='復元しました').wait_for(timeout=60000)
                     assert page.locator('#song-title').input_value()=='WEB EXPORT TEST'
                     assert 'reference.wav' in page.locator('.upload-name').first.inner_text()
+                    assert page.locator('.clip-waveform').get_attribute('data-waveform-source')=='uploaded'
                     assert page.locator('#clip-start').input_value()=='240'
                     assert page.locator('button.template-card').last.get_attribute('aria-pressed')=='true'
                     page.locator("button.settings-tab").nth(1).click()
