@@ -9,6 +9,7 @@ import type {SceneProps, Theme, Note} from './remotion/types';
 import {decodeAudio, analyzeAudioSegment} from './audio-analysis';
 import {readMidi} from './midi';
 import {LandingPage} from './LandingPage';
+import {TemplatePreview} from './TemplatePreview';
 import {saveProject,loadProject,clearProject} from './project-storage';
 
 const FPS=30;
@@ -256,19 +257,18 @@ export function App(){
         <div><strong>SONOTYPE</strong><small>CREATE MUSIC VISUALS</small></div>
       </div>
       <div className="sidebar-intro">
-        <span className="eyebrow">STEP 01 — PICK A LOOK</span>
-        <h2>テンプレート</h2>
-        <p>音楽の雰囲気に合わせてデザインを選択。</p>
+        <span className="eyebrow">01 / VISUAL STYLE</span>
+        <h2>スタイル</h2>
+        <p>仕上がりの画面から選ぶ。</p>
       </div>
       <div className="template-gallery" aria-label="テンプレート一覧">
         {TEMPLATES.map((entry,i)=>
           <button key={entry.id} type="button"
             onClick={()=>setTemplateId(entry.id)} aria-pressed={templateId===entry.id}
             className={'template-card'+(templateId===entry.id?' selected':'')}>
-            <div className={'template-thumbnail thumb-'+entry.id}>
-              <span className="thumb-kicker">{String(i+1).padStart(2,'0')} / SONOTYPE</span>
-              <span className="thumb-emblem">{entry.id==='signal'?'▥▥▥':entry.id==='retro-grid'?'▣ ▦':entry.id==='lofi-player'?'◎':entry.id==='dopa-rush'?'▣▰':'◉'}</span>
-              <span className="thumb-barlines"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></span>
+            <div className="template-thumbnail">
+              <TemplatePreview templateId={entry.id}/>
+              <span className="thumb-kicker">{String(i+1).padStart(2,'0')}</span>
             </div>
             <span className="template-card-meta">
               <strong>{entry.name}</strong>
@@ -320,7 +320,7 @@ export function App(){
     </main>
 
     <aside className="settings-sidebar">
-      <div className="settings-header"><span className="eyebrow">STEP 02 — MAKE IT YOURS</span><h2>カスタマイズ</h2></div>
+      <div className="settings-header"><span className="eyebrow">02 / YOUR WORK</span><h2>編集</h2></div>
       <div className="project-actions" aria-label="ローカルプロジェクト">
         <button type="button" onClick={()=>void saveCurrentProject()} disabled={loading||exporting||saving}>保存</button>
         <button type="button" onClick={()=>void restoreSavedProject()} disabled={loading||exporting||saving}>復元</button>
@@ -417,7 +417,7 @@ export function App(){
         </div>
       </div>
       <div className="export-panel">
-        <div className="export-head"><span className="eyebrow">STEP 03 — EXPORT</span>
+        <div className="export-head"><span className="eyebrow">03 / EXPORT</span>
           <span className="export-format">{selectedPlatform.name} · {formatSeconds(clipStartSeconds)}から{seconds}秒 · MP4</span></div>
         <button className="export-button" type="button" disabled={loading||exporting}
           onClick={()=>void exportMp4()}>{exporting?'書き出し中…':'MP4を書き出す'} <span aria-hidden="true">↗</span></button>
