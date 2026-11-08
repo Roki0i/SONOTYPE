@@ -69,6 +69,21 @@ def main():
                 # some runners: any such failure is reported, never silently skipped.
                 browser=p.chromium.launch(headless=True)
                 page=browser.new_page(viewport={'width':1440,'height':900},accept_downloads=True)
+                # Monitor real Web Audio transitions. A pause must not suspend the
+                # AudioContext, which can cut a nonzero sample and click audibly.
+                page.add_init_script("""
+                    window.__sonotypeAudioTransitions = {suspends:0, resumes:0};
+                    const originalSuspend = AudioContext.prototype.suspend;
+                    const originalResume = AudioContext.prototype.resume;
+                    AudioContext.prototype.suspend = function(...args) {
+                      window.__sonotypeAudioTransitions.suspends++;
+                      return originalSuspend.apply(this,args);
+                    };
+                    AudioContext.prototype.resume = function(...args) {
+                      window.__sonotypeAudioTransitions.resumes++;
+                      return originalResume.apply(this,args);
+                    };
+                """)
                 errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 try:
@@ -112,6 +127,28 @@ def main():
                     for index,label in enumerate(labels):
                         page.locator('button.template-card').nth(index).click()
                         page.locator('.player-with-guide').get_by_text(label,exact=True).wait_for(state='visible',timeout=10000)
+                    # Toggle real player controls (not synthetic audio stubs).
+                    # The audio context should remain active during pause.
+                    page.locator('.player-with-guide').hover()
+                    play_control=page.locator('.player-with-guide button[aria-label="Play video"]')
+                    play_control.click(timeout=15000)
+                    pause_control=page.locator('.player-with-guide button[aria-label="Pause video"]')
+                    pause_control.wait_for(state='visible',timeout=15000)
+                    page.wait_for_timeout(300)
+                    transitions_before=page.evaluate('window.__sonotypeAudioTransitions')
+                    assert transitions_before['resumes']>0, 'Test did not start Web Audio'
+                    pause_control.click(timeout=15000)
+                    play_control.wait_for(state='visible',timeout=15000)
+                    page.wait_for_timeout(200)
+                    transitions_after=page.evaluate('window.__sonotypeAudioTransitions')
+                    assert transitions_after['suspends']==transitions_before['suspends'], (
+                        f"AudioContext suspended on pause: {transitions_before} -> {transitions_after}")
+                    # Playback remains usable after a pause.
+                    play_control.click(timeout=15000)
+                    pause_control.wait_for(state='visible',timeout=15000)
+                    pause_control.click(timeout=15000)
+                    play_control.wait_for(state='visible',timeout=15000)
+                    print('PLAYER PAUSE PASS: preview context stays running through pause/resume',flush=True)
                     assert page.locator("button.settings-tab").count()==2
                     assert page.locator("#settings-content").is_visible()
                     page.locator("button.preview-zoom-button").last.click()

@@ -307,6 +307,9 @@ export function App(){
           <div className="player-with-guide" style={{maxWidth:previewWidth}}>
             <Player key={seconds+'-'+selectedStartFrame} component={TemplateScene} inputProps={props}
               durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
+              // Keep the audio stream alive while paused, instead of suspending
+              // AudioContext at an arbitrary sample (a potential click on stop).
+              _experimentalKeepAudioContextAlive
               controls style={{width:'100%',aspectRatio:'9 / 16'}}/>
             {showSafeArea?<div className="safe-zone-guide" aria-hidden="true" style={{
               top:(selectedPlatform.safe.top*100)+'%',
