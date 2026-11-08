@@ -72,7 +72,9 @@ def main():
                 errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 try:
+                    started_at=time.monotonic()
                     page.goto(URL,wait_until='networkidle',timeout=90000)
+                    first_load_ms=round((time.monotonic()-started_at)*1000)
                     assert page.locator('.oto-hero').is_visible()
                     assert page.locator('.sono-groove-art svg').is_visible()
                     assert page.locator('.sono-record').count()==1
@@ -81,9 +83,16 @@ def main():
                     assert 'SONOTYPE' in page.locator('.oto-home-logo').inner_text()
                     assert page.locator('button.oto-home-template').count()==5
                     assert page.locator('button.oto-home-template .template-preview').count()==5
-                    # A new visitor sees a discoverable homepage before entering the editor.
-                    page.set_viewport_size({'width':390,'height':844})
-                    assert page.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth")<=2
+                    # Diagnostic only: CI desktop hardware cannot establish a mobile speed budget.
+                    thumb_nodes=page.evaluate("Array.from(document.querySelectorAll('.template-preview')).reduce((total,el)=>total+el.querySelectorAll('*').length,0)")
+                    print(f'PAGES LANDING: {first_load_ms} ms to network-idle, {thumb_nodes} thumbnail DOM descendants',flush=True)
+                    # Check common small viewports without pretending to emulate mobile Safari.
+                    for width,height in ((360,780),(390,844),(430,932)):
+                        page.set_viewport_size({'width':width,'height':height})
+                        assert page.locator('button.oto-main-cta').first.is_visible()
+                        assert page.locator('button.oto-home-template').count()==5
+                        overflow=page.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth")
+                        assert overflow<=2, f'Landing viewport {width}px overflow: {overflow}px'
                     page.set_viewport_size({'width':1440,'height':900})
                     page.locator('button.oto-main-cta').first.click()
                     assert page.locator('button.template-card').count()==5
@@ -92,7 +101,17 @@ def main():
                     assert page.locator('button.platform-option').count()==3
                     assert page.locator('text=ブラウザ制作').count()>0
                     assert page.evaluate("fetch('./demo.wav').then(r=>r.ok)")
-                    page.locator('button.template-card').last.click()
+                    # Verify the actual video preview carries the renamed brand for every style.
+                    labels=[
+                        'SONOTYPE / SIGNAL STUDIO',
+                        'SONOTYPE / VISUAL STUDIO',
+                        'NOW PLAYING / SONOTYPE',
+                        'SONOTYPE / ARTWORK',
+                        'SONOTYPE / SHORTS'
+                    ]
+                    for index,label in enumerate(labels):
+                        page.locator('button.template-card').nth(index).click()
+                        assert page.locator('.player-with-guide').get_by_text(label,exact=True).count()>0, label
                     assert page.locator("button.settings-tab").count()==2
                     assert page.locator("#settings-content").is_visible()
                     page.locator("button.preview-zoom-button").last.click()
@@ -133,9 +152,19 @@ def main():
                     export_box=page.locator('button.export-button').bounding_box()
                     assert export_box is not None
                     assert export_box['y']>=0 and export_box['y']+export_box['height']<=900
-                    page.set_viewport_size({'width':390,'height':844})
-                    overflow=page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
-                    assert overflow<=2, f'Mobile editor overflow: {overflow}px'
+                    for width,height in ((360,780),(390,844),(430,932)):
+                        page.set_viewport_size({'width':width,'height':height})
+                        overflow=page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+                        assert overflow<=2, f'Editor viewport {width}px overflow: {overflow}px'
+                        # Verify that actual controls remain usable at narrow widths.
+                        page.locator('button.template-card').last.click()
+                        assert page.locator('button.template-card').last.get_attribute('aria-pressed')=='true'
+                        page.locator('button.settings-tab').nth(1).click()
+                        assert page.locator('#settings-style').is_visible()
+                        page.locator('button.settings-tab').first.click()
+                        assert page.locator('#settings-content').is_visible()
+                        page.locator('button.export-button').scroll_into_view_if_needed()
+                        assert page.locator('button.export-button').is_enabled()
                     page.set_viewport_size({'width':1440,'height':900})
                     assert not errors, errors
                     with page.expect_download(timeout=270000) as download_info:
