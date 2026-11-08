@@ -74,6 +74,9 @@ def main():
                 try:
                     page.goto(URL,wait_until='networkidle',timeout=90000)
                     assert page.locator('.oto-hero').is_visible()
+                    assert page.locator('.sono-groove-art svg').is_visible()
+                    assert page.locator('.sono-record').count()==1
+                    assert page.locator('.oto-guide-steps li').count()==3
                     assert page.title().startswith('SONOTYPE')
                     assert 'SONOTYPE' in page.locator('.oto-home-logo').inner_text()
                     assert page.locator('button.oto-home-template').count()==5
