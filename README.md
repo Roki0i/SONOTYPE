@@ -4,10 +4,10 @@
 
 YouTube Shorts・Instagram Reels・TikTok向けの音楽ビジュアル動画を、ブラウザで編集・書き出しできる個人開発Webアプリです。音源とテンプレートを選び、曲名・配色・使用区間を調整してMP4を生成できます。
 
-**[Webアプリを試す](https://roki0i.github.io/oto-signal-studio/)** · **[編集画面を開く](https://roki0i.github.io/oto-signal-studio/#editor)** · **[8秒の完成動画を見る](https://roki0i.github.io/oto-signal-studio/sonotype-demo.mp4)**
+**[Webアプリを試す](https://roki0i.github.io/SONOTYPE/)** · **[編集画面を開く](https://roki0i.github.io/SONOTYPE/#editor)** · **[8秒の完成動画を見る](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4)**
 
-[![CI](https://github.com/Roki0i/oto-signal-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Roki0i/oto-signal-studio/actions/workflows/ci.yml)
-[![GitHub Pages](https://github.com/Roki0i/oto-signal-studio/actions/workflows/pages.yml/badge.svg)](https://github.com/Roki0i/oto-signal-studio/actions/workflows/pages.yml)
+[![CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml/badge.svg)](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)
+[![GitHub Pages](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml/badge.svg)](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)
 
 ## 使い方
 
@@ -17,7 +17,7 @@ YouTube Shorts・Instagram Reels・TikTok向けの音楽ビジュアル動画を
 2. 5種類のスタイルを選び、必要に応じて音源・ジャケット画像・曲名・配色を変更する。波形から使用区間も選択できる。
 3. 「MP4を書き出す」を押す。対応ブラウザでは端末内で動画を生成する。
 
-[完成動画のサンプル（8秒・540×960・MP4）](https://roki0i.github.io/oto-signal-studio/sonotype-demo.mp4)は、同梱のオリジナルデモ音源からGitHub Actionsで生成したものです。通常の編集画面で書き出す動画は**1080×1920・30fps・H.264/AAC**です。
+[完成動画のサンプル（8秒・540×960・MP4）](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4)は、同梱のオリジナルデモ音源からGitHub Actionsで生成したものです。通常の編集画面で書き出す動画は**1080×1920・30fps・H.264/AAC**です。
 
 ## 主な機能
 
@@ -71,7 +71,7 @@ npm run render:demo    # ローカルのデモMP4生成
 npm audit --audit-level=high
 ```
 
-GitHub Actionsの[CI](https://github.com/Roki0i/oto-signal-studio/actions/workflows/ci.yml)では、単体テスト・Linux Chromium・Windows Chrome/Edge・ブラウザ内MP4書き出し・音声同期を確認しています。公開ビルドは[Pagesワークフロー](https://github.com/Roki0i/oto-signal-studio/actions/workflows/pages.yml)で検証・配信します。
+GitHub Actionsの[CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)では、単体テスト・Linux Chromium・Windows Chrome/Edge・ブラウザ内MP4書き出し・音声同期を確認しています。公開ビルドは[Pagesワークフロー](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)で検証・配信します。
 
 ## 制限と注意事項
 
