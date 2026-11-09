@@ -118,7 +118,7 @@ export function LandingPage({onStart,onPick}:Props){
 
     <footer className="oto-home-footer">
       <div><strong>SONOTYPE</strong><p>音源・画像はブラウザで処理。保存データはサイトデータ削除で消える場合があります。外部テレメトリ通信が発生する場合があります。</p></div>
-      <a href="https://github.com/Roki0i/oto-signal-studio" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      <a href="https://github.com/Roki0i/SONOTYPE" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </footer>
   </div>;
 }
