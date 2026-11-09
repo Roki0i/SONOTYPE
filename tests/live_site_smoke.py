@@ -51,6 +51,13 @@ def check_mobile(browser):
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.goto(URL, wait_until="domcontentloaded", timeout=60000)
     page.locator(".oto-hero").wait_for(state="visible", timeout=45000)
+    # The mobile gallery uses the same viewport-triggered thumbnail loader.
+    for index in range(5):
+        card = page.locator("button.oto-home-template").nth(index)
+        card.scroll_into_view_if_needed()
+        card.locator(".template-preview > div").wait_for(state="visible", timeout=30000)
+    page.locator(".oto-hero").scroll_into_view_if_needed()
+    page.wait_for_timeout(400)
     overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
     assert overflow <= 12, f"Mobile page overflows horizontally: {overflow}px"
     page.screenshot(path=str(OUT / "sonotype-mobile.png"), full_page=True)
