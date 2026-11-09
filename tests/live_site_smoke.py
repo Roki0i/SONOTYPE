@@ -15,7 +15,16 @@ def check_desktop(browser):
     response = page.goto(URL, wait_until="domcontentloaded", timeout=60000)
     assert response and response.status == 200, "SONOTYPE home did not return HTTP 200"
     page.locator(".oto-hero").wait_for(state="visible", timeout=45000)
-    assert page.locator("button.oto-home-template").count() == 5
+    gallery = page.locator("button.oto-home-template")
+    assert gallery.count() == 5
+    # Full-page screenshots do not necessarily trigger IntersectionObserver.
+    # Visit each lazy thumbnail so the image represents the actual rendered UI.
+    for index in range(5):
+        card = gallery.nth(index)
+        card.scroll_into_view_if_needed()
+        card.locator(".template-preview > div").wait_for(state="visible", timeout=30000)
+    page.locator(".oto-hero").scroll_into_view_if_needed()
+    page.wait_for_timeout(400)
     page.screenshot(path=str(OUT / "sonotype-home.png"), full_page=True)
 
     page.locator("button.oto-main-cta").first.click()
