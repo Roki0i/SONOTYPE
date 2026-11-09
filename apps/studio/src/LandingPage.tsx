@@ -1,6 +1,6 @@
 import {TEMPLATES, type TemplateId} from './templates.mjs';
 import './landing.css';
-import {TemplatePreview} from './TemplatePreview';
+import {DeferredTemplatePreview} from './DeferredTemplatePreview';
 
 type Props={
   onStart:()=>void;
@@ -91,7 +91,7 @@ export function LandingPage({onStart,onPick}:Props){
             type="button" onClick={()=>onPick(t.id)} aria-label={t.name+'で編集を始める'}>
             <span className="oto-home-template-art" aria-hidden="true">
               <span className="oto-card-no">{String(i+1).padStart(2,'0')} / 05</span>
-              <TemplatePreview templateId={t.id}/>
+              <DeferredTemplatePreview templateId={t.id}/>
               <span className="oto-card-action">↗</span>
             </span>
             <span className="oto-home-template-text"><strong>{t.name}</strong><small>{t.category}</small></span>
