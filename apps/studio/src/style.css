@@ -135,6 +135,21 @@ button:focus-visible,input:focus-visible {
   background:#2c2f28;
   overflow:hidden;
 }
+.deferred-template-preview {
+  position:absolute;
+  inset:0;
+  display:block;
+  overflow:hidden;
+  pointer-events:none
+}
+.studio-loading {
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  background:#e7e5dc;
+  color:#282a25;
+  font-size:14px
+}
 .template-preview {
   position:absolute;
   inset:0;
