@@ -9,6 +9,20 @@ YouTube Shorts・Instagram Reels・TikTok向けの音楽ビジュアル動画を
 [![CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml/badge.svg)](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)
 [![GitHub Pages](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml/badge.svg)](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)
 
+## ポートフォリオ概要
+
+| 観点 | 開発で取り組んだこと |
+| --- | --- |
+| 解決したい課題 | 音楽に同期するShorts・Reels用映像を、編集ソフトや動画生成サーバーなしで制作 |
+| 設計 | React / TypeScriptで編集画面を構築し、Remotionの同一映像シーンをプレビュー・MP4書き出しに使用 |
+| 品質 | MIDIの長いノートの保存・復元、ブラウザのMP4対応判定、映像・音声同期を回帰テスト |
+| 性能 | ホーム画面のJavaScript初期エントリを**約1,286KBから約231KB（約82%減）**に削減。編集画面・サムネイルを遅延読み込み |
+| 検証 | GitHub ActionsでLinux Chromium / Windows Chrome・Edgeの動作確認とデモMP4のH.264/AAC検証 |
+
+[デモ映像](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4) · [公開PC・モバイル画面の検証・スクリーンショット（Actions成果物）](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)
+
+※サイズは**最初に読み込むエントリJSファイル単体**の実測値です。アプリ全体のJavaScript転送量ではありません。モバイル画面のテストはChromiumのエミュレーションであり、物理端末の動作を保証しません。
+
 ## 使い方
 
 **音源を用意しなくても試せます。** 初期状態でオリジナルのデモ音源が設定されています。
