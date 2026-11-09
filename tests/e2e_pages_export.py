@@ -110,6 +110,7 @@ def main():
                         assert overflow<=2, f'Landing viewport {width}px overflow: {overflow}px'
                     page.set_viewport_size({'width':1440,'height':900})
                     page.locator('button.oto-main-cta').first.click()
+                    page.locator('button.template-card').first.wait_for(state='visible',timeout=30000)
                     assert page.locator('button.template-card').count()==5
                     assert page.locator('button.template-card .template-preview').count()==5
                     assert 'SONOTYPE' in page.locator('.brand').inner_text()
