@@ -1,6 +1,7 @@
 """Browser E2E for the React template editor including uploaded cover -> MP4.
 
-Requires Python Playwright/Chromium, Node 24 and FFmpeg. Runs on Linux CI.
+Requires Python Playwright, Node 24 and FFmpeg. Runs in Linux Chromium and
+Windows Chrome/Edge CI, and verifies long-MIDI IndexedDB persistence.
 """
 import json
 import math
@@ -56,6 +57,20 @@ def seek_wav():
     return out.getvalue()
 
 
+def long_note_midi():
+    """Valid format-0 MIDI: a single 180-second note at default tempo."""
+    def vlq(value):
+        octets = [value & 0x7F]
+        value >>= 7
+        while value:
+            octets.insert(0, (value & 0x7F) | 0x80)
+            value >>= 7
+        return bytes(octets)
+
+    track = b"\x00\x90\x3c\x64" + vlq(180 * 960) + b"\x80\x3c\x00\x00\xff\x2f\x00"
+    return b"MThd" + struct.pack(">IHHH", 6, 0, 1, 480) + b"MTrk" + struct.pack(">I", len(track)) + track
+
+
 def wait_for_server(proc, timeout=90):
     end = time.monotonic() + timeout
     while time.monotonic() < end:
@@ -97,13 +112,21 @@ def main():
     RESULTS.mkdir(exist_ok=True)
     with (RESULTS / "studio-dev.log").open("w", encoding="utf-8") as log:
         proc = subprocess.Popen(
-            ["npm", "run", "dev"], cwd=STUDIO, stdout=log, stderr=subprocess.STDOUT,
+            ["npm.cmd" if os.name == "nt" else "npm", "run", "dev"],
+            cwd=STUDIO, stdout=log, stderr=subprocess.STDOUT,
             start_new_session=(os.name != "nt"),
         )
         try:
             wait_for_server(proc)
             with sync_playwright() as playwright:
-                browser = playwright.chromium.launch(headless=True)
+                channel = os.environ.get("OTO_BROWSER_CHANNEL", "").strip()
+                if channel not in ("", "chrome", "msedge"):
+                    raise ValueError("Invalid OTO_BROWSER_CHANNEL")
+                launch_options = {"headless": True}
+                if channel:
+                    launch_options["channel"] = channel
+                browser = playwright.chromium.launch(**launch_options)
+                print("REACT STUDIO BROWSER:", channel or "playwright-chromium", browser.version, flush=True)
                 page = browser.new_page(accept_downloads=True, viewport={"width": 1440, "height": 900})
                 errors = []
                 page.on("pageerror", lambda e: errors.append(str(e)))
@@ -144,11 +167,39 @@ def main():
                     assert not page.locator("#settings-style").is_visible()
                     page.locator("#song-title").fill("CI TEST TRACK")
                     page.locator("#artist-name").fill("CI TEST ARTIST")
+                    page.locator('input[aria-label="MIDIファイルを選択"]').set_input_files(
+                        {"name": "long-note.mid", "mimeType": "audio/midi", "buffer": long_note_midi()}
+                    )
+                    page.get_by_role("status").filter(
+                        has_text="1個のMIDIノートを読み込みました"
+                    ).wait_for(timeout=12000)
                     page.get_by_role("button", name="保存", exact=True).click()
                     page.get_by_role("status").filter(has_text="保存しました").wait_for(timeout=12000)
+                    stored_notes = page.evaluate("""async () => {
+                        const db = await new Promise((resolve, reject) => {
+                            const req = indexedDB.open('oto-signal-studio', 1);
+                            req.onsuccess = () => resolve(req.result);
+                            req.onerror = () => reject(req.error);
+                        });
+                        try {
+                            return await new Promise((resolve, reject) => {
+                                const req = db.transaction('projects', 'readonly')
+                                    .objectStore('projects').get('latest');
+                                req.onsuccess = () => resolve(req.result?.notes);
+                                req.onerror = () => reject(req.error);
+                            });
+                        } finally {
+                            db.close();
+                        }
+                    }""")
+                    assert stored_notes == [{"pitch": 60, "time": 0, "duration": 180}], stored_notes
+                    page.reload(wait_until="networkidle", timeout=90000)
                     page.get_by_role("button", name="復元", exact=True).click()
                     page.get_by_role("status").filter(has_text="復元しました").wait_for(timeout=60000)
                     assert page.locator("#song-title").input_value()=="CI TEST TRACK"
+                    assert page.locator('.upload-input').filter(
+                        has_text="MIDIファイル"
+                    ).locator('.upload-name').inner_text()=="1ノート"
                     # Preview width is user adjustable, without changing composition dimensions.
                     sizes = page.locator("button.preview-zoom-button")
                     assert sizes.count() == 3
@@ -215,7 +266,11 @@ def main():
                 if os.name != "nt":
                     os.killpg(proc.pid, signal.SIGTERM)
                 else:
-                    proc.terminate()
+                    # npm.cmd launches Node child processes. Stop the complete job tree.
+                    subprocess.run(
+                        ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                        check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                    )
                 try:
                     proc.wait(timeout=8)
                 except subprocess.TimeoutExpired:
