@@ -4,6 +4,7 @@
  */
 import {isTemplateId, type TemplateId} from './templates.mjs';
 import {isSocialId, type SocialId} from './social-presets.mjs';
+import {isMidiNotes} from './midi.ts';
 import type {Note,Theme} from './remotion/types';
 
 const DB_NAME='oto-signal-studio';
@@ -48,10 +49,7 @@ export function isStoredProject(raw:unknown):raw is StoredProject{
     !isTemplateId(s.templateId)||!themes.has(s.theme as string)||
     !times.has(s.seconds as number)||!isSocialId(s.platform)||
     !Number.isInteger(s.startFrame)||s.startFrame<0||s.startFrame>3600*30)return false;
-  if(!Array.isArray(p.notes)||p.notes.length>20000||
-    !p.notes.every(n=>n&&Number.isInteger(n.pitch)&&n.pitch>=0&&n.pitch<=127&&
-      Number.isFinite(n.time)&&n.time>=0&&n.time<=3600&&
-      Number.isFinite(n.duration)&&n.duration>0&&n.duration<=120))return false;
+  if(!isMidiNotes(p.notes))return false;
   return fileOkay(p.audio,'audio')&&fileOkay(p.cover,'cover');
 }
 
