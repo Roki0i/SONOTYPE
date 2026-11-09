@@ -71,7 +71,7 @@ npm run render:demo    # ローカルのデモMP4生成
 npm audit --audit-level=high
 ```
 
-GitHub Actionsの[CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)では、単体テスト・Linux Chromium・Windows Chrome/Edge・ブラウザ内MP4書き出し・音声同期を確認しています。公開ビルドは[Pagesワークフロー](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)で検証・配信します。
+GitHub Actionsの[CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)では、単体テストに加えて、現行React版の操作・IndexedDBへの長時間MIDI保存と復元・ローカルMP4書き出しをLinux ChromiumとWindows Chrome/Edgeで検証します。旧Python/Canvas版のブラウザテストも維持しています。公開Web版のブラウザ内MP4書き出しと音声同期はLinux Chromiumで検証し、公開ビルドは[Pagesワークフロー](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)で検証・配信します。
 
 ## 制限と注意事項
 
