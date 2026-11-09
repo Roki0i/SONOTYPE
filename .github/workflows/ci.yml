@@ -149,7 +149,7 @@ jobs:
       - name: Security audit of full dependency tree
         run: npm audit --audit-level=high
       - name: Test local export API validation and MIDI project persistence
-        run: node --test scripts/export-api.test.mjs scripts/midi-project.test.mjs
+        run: node --test scripts/export-api.test.mjs scripts/midi-project.test.mjs scripts/mp4-support.test.mjs
       - name: Test deterministic FFT frequency analysis
         run: node --test scripts/signal-analysis.test.mjs
       - name: Typecheck and Vite build
