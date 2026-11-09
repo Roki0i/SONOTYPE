@@ -163,6 +163,8 @@ jobs:
         run: node --test scripts/signal-analysis.test.mjs
       - name: Typecheck and Vite build
         run: npm run build
+      - name: Measure initial entry JavaScript
+        run: node scripts/check-entry-chunk.mjs
       - name: Validate Remotion composition
         run: npx remotion compositions src/remotion/entry.ts
       - name: Render first 60 frames to H.264 MP4
