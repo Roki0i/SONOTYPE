@@ -1,5 +1,6 @@
 import {TemplateScene} from './remotion/TemplateScene';
 import type {SceneProps} from './remotion/types';
+import {checkWebMp4Support} from './mp4-support';
 
 export const VIDEO_FPS=30;
 
@@ -18,15 +19,10 @@ export async function renderMp4({
   isPages,props,seconds,audioFile,coverFile,demoAudioUrl,onProgress
 }:ExportOptions):Promise<Blob>{
   if(isPages){
-    const {canRenderMediaOnWeb,renderMediaOnWeb}=await import('@remotion/web-renderer');
-    const support=await canRenderMediaOnWeb({
-      container:'mp4',videoCodec:'h264',audioCodec:'aac',width:1080,height:1920,
-      outputTarget:'arraybuffer'
-    });
-    if(!support.canRender){
-      throw Error('このブラウザでは音声付きMP4を書き出せません: '+
-        support.issues.map(issue=>issue.message).join(' / '));
-    }
+    // Check again at export time in case browser support changed since editor load.
+    const issue=await checkWebMp4Support();
+    if(issue)throw Error(issue);
+    const {renderMediaOnWeb}=await import('@remotion/web-renderer');
     const {getBlob}=await renderMediaOnWeb({
       composition:{id:'OTO-Web-Export',component:TemplateScene,
         width:1080,height:1920,fps:VIDEO_FPS,

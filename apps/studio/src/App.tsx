@@ -13,6 +13,7 @@ import {TemplatePreview} from './TemplatePreview';
 import {ClipWaveform} from './ClipWaveform';
 import {saveProject,loadProject,clearProject} from './project-storage';
 import {renderMp4,VIDEO_FPS as FPS} from './video-export';
+import {checkWebMp4Support} from './mp4-support';
 
 const THEMES:Theme[]=['arctic','mint','violet'];
 const MAX_COVER=5*1024*1024;
@@ -45,6 +46,9 @@ export function App(){
   const [status,setStatus]=useState('デモ音源を使用中。テンプレートと文字を編集できます。');
   const [loading,setLoading]=useState(false);
   const [exporting,setExporting]=useState(false);
+  const [webMp4Status,setWebMp4Status]=useState<{
+    state:'checking'|'supported'|'unsupported';message:string
+  }>({state:'checking',message:'MP4書き出しの対応状況を確認中…'});
   const [saving,setSaving]=useState(false);
   const uploaded=useRef<string|null>(null);
   const coverUrl=useRef<string|null>(null);
@@ -55,6 +59,23 @@ export function App(){
     window.addEventListener('hashchange',sync);
     return ()=>window.removeEventListener('hashchange',sync);
   },[]);
+  useEffect(()=>{
+    if(!IS_PAGES||page!=='editor')return;
+    let active=true;
+    setWebMp4Status({state:'checking',message:'MP4書き出しの対応状況を確認中…'});
+    void checkWebMp4Support().then(issue=>{
+      if(!active)return;
+      setWebMp4Status(issue
+        ?{state:'unsupported',message:issue}
+        :{state:'supported',message:'このブラウザで音声付きMP4を書き出せます。'});
+    }).catch(error=>{
+      if(!active)return;
+      setWebMp4Status({state:'unsupported',
+        message:'MP4書き出しの対応状況を確認できません: '+
+          (error instanceof Error?error.message:'再読み込みしてお試しください。')});
+    });
+    return ()=>{active=false;};
+  },[page]);
   const goTo=(view:'home'|'editor')=>{
     window.location.hash=view;
     setPage(view);
@@ -138,7 +159,7 @@ export function App(){
     setStatus('デモ音源と既定のジャケットに戻しました');
   }
   async function exportMp4(){
-    if(exporting||loading)return;
+    if(exporting||loading||(IS_PAGES&&webMp4Status.state!=='supported'))return;
     setExporting(true);setStatus('MP4を作成しています。ウィンドウを閉じずにお待ちください。');
     try{
       const video=await renderMp4({
@@ -399,8 +420,14 @@ export function App(){
       <div className="export-panel">
         <div className="export-head"><span className="eyebrow">03 / EXPORT</span>
           <span className="export-format">{selectedPlatform.name} · {formatSeconds(clipStartSeconds)}から{seconds}秒 · MP4</span></div>
-        <button className="export-button" type="button" disabled={loading||exporting}
+        <button className="export-button" type="button"
+          disabled={loading||exporting||(IS_PAGES&&webMp4Status.state!=='supported')}
+          aria-describedby="export-availability"
           onClick={()=>void exportMp4()}>{exporting?'書き出し中…':'MP4を書き出す'} <span aria-hidden="true">↗</span></button>
+        <p id="export-availability" role="status"
+          className={'export-availability'+(IS_PAGES&&webMp4Status.state==='unsupported'?' is-unavailable':'')}>
+          {IS_PAGES?webMp4Status.message:'ローカル版：このPCのRemotion出力サーバーを使用します。'}
+        </p>
         <button type="button" className="reset-button" onClick={resetDemo}
           disabled={loading||exporting}>デモに戻す</button>
         <p role="status" className="status-message">{loading?'音声を解析しています…':status}</p>
