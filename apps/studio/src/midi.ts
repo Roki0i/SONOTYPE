@@ -1,5 +1,24 @@
 import type {Note} from './remotion/types';
 
+// Bound start time and duration separately. The end may exceed one hour: existing
+// saved projects allow such tails, and preview/export clip notes to the selected video.
+const MAX_MIDI_SECONDS=3600;
+const MAX_MIDI_NOTES=20000;
+
+export function isMidiNotes(value:unknown):value is Note[]{
+  if(!Array.isArray(value)||value.length>MAX_MIDI_NOTES)return false;
+  for(let i=0;i<value.length;i++){
+    if(!Object.hasOwn(value,i))return false;
+    const entry:unknown=value[i];
+    if(!entry||typeof entry!=='object')return false;
+    const note=entry as Note;
+    if(!Number.isInteger(note.pitch)||note.pitch<0||note.pitch>127||
+      !Number.isFinite(note.time)||note.time<0||note.time>MAX_MIDI_SECONDS||
+      !Number.isFinite(note.duration)||note.duration<=0||note.duration>MAX_MIDI_SECONDS)return false;
+  }
+  return true;
+}
+
 /** Read standard MIDI format 0/1 with PPQ timing (no external parser). */
 export function readMidi(buffer: ArrayBuffer): Note[] {
   const d = new DataView(buffer);
@@ -35,7 +54,13 @@ export function readMidi(buffer: ArrayBuffer): Note[] {
       const velocity=(kind===192||kind===208)?0:byte();
       const key=String(ch)+':'+String(note);
       if(kind===144&&velocity>0){const stack=opened.get(key)??[];stack.push(tick);opened.set(key,stack);}
-      else if(kind===128||(kind===144&&velocity===0)){const q=opened.get(key);if(q?.length)events.push({start:q.shift()!,end:tick,pitch:note});}
+      else if(kind===128||(kind===144&&velocity===0)){
+        const q=opened.get(key);
+        if(q?.length){
+          events.push({start:q.shift()!,end:tick,pitch:note});
+          if(events.length>MAX_MIDI_NOTES)throw Error('MIDIノートは20000個以内にしてください');
+        }
+      }
       if(p>tr.end)throw Error('MIDIトラック破損');
     }
     p=tr.end;
@@ -46,5 +71,7 @@ export function readMidi(buffer: ArrayBuffer): Note[] {
     for(const [tick,tempo] of tempos){if(tick>at)break;result+=(tick-lastTick)*lastTempo/ppq/1e6;lastTick=tick;lastTempo=tempo;}
     return result+(at-lastTick)*lastTempo/ppq/1e6;
   }
-  return events.slice(0,20000).map(e=>({pitch:e.pitch,time:sec(e.start),duration:Math.max(.02,sec(e.end)-sec(e.start))})).sort((a,b)=>a.time-b.time);
+  const notes=events.map(e=>({pitch:e.pitch,time:sec(e.start),duration:Math.max(.02,sec(e.end)-sec(e.start))}));
+  if(!isMidiNotes(notes))throw Error('MIDIノートの開始位置と長さは1時間以内にしてください');
+  return notes.sort((a,b)=>a.time-b.time);
 }
