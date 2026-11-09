@@ -25,10 +25,10 @@ const formatSeconds=(seconds:number)=>{
   return String(Math.floor(whole/60))+':'+String(whole%60).padStart(2,'0');
 };
 
-export function App(){
+export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
   const [page,setPage]=useState<'home'|'editor'>(()=>
     window.location.hash==='#editor'?'editor':'home');
-  const [templateId,setTemplateId]=useState<TemplateId>('retro-grid');
+  const [templateId,setTemplateId]=useState<TemplateId>(initialTemplateId??'retro-grid');
   const [theme,setTheme]=useState<Theme>('arctic');
   const [seconds,setSeconds]=useState(15);
   const [startFrame,setStartFrame]=useState(0);

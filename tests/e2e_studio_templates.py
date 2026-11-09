@@ -136,6 +136,7 @@ def main():
                     assert page.locator("button.oto-home-template").count() == 5
                     page.locator("button.oto-main-cta").first.click()
                     cards = page.locator("button.template-card")
+                    cards.first.wait_for(state="visible", timeout=30000)
                     assert cards.count() == 5, "Expected five template options"
 
                     for i in (0, 1, 2, 3, 4):
