@@ -756,10 +756,20 @@ button:focus-visible,input:focus-visible {
   overflow:auto;
   overflow-wrap:anywhere
 }
+.export-availability {
+  margin:8px 0 0;
+  color:#39443a;
+  font-size:11px;
+  line-height:1.5;
+  overflow-wrap:anywhere
+}
+.export-availability.is-unavailable {
+  color:#752f2a
+}
 .privacy-note {
-  margin:0;
-  color:#77786c;
-  font-size:9px;
+  margin:8px 0 0;
+  color:#52584e;
+  font-size:11px;
   line-height:1.5
 }
 @media (min-width:941px) {
