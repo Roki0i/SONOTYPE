@@ -2,105 +2,49 @@
 
 **音楽を、短い縦型映像に。**
 
-YouTube Shorts・Instagram Reels・TikTok向けの音楽ビジュアル動画を、ブラウザで編集・書き出しできる個人開発Webアプリです。音源とテンプレートを選び、曲名・配色・使用区間を調整してMP4を生成できます。
+Shorts・Reels・TikTok向けの音楽ビジュアル動画を、ブラウザで編集・MP4書き出しできるWebアプリです。
 
-**[Webアプリを試す](https://roki0i.github.io/SONOTYPE/)** · **[編集画面を開く](https://roki0i.github.io/SONOTYPE/#editor)** · **[8秒の完成動画を見る](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4)**
+**[Webアプリ](https://roki0i.github.io/SONOTYPE/)** · [編集画面](https://roki0i.github.io/SONOTYPE/#editor) · [完成動画デモ](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4)
 
 [![CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml/badge.svg)](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)
-[![GitHub Pages](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml/badge.svg)](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)
-
-## ポートフォリオ概要
-
-| 観点 | 開発で取り組んだこと |
-| --- | --- |
-| 解決したい課題 | 音楽に同期するShorts・Reels用映像を、編集ソフトや動画生成サーバーなしで制作 |
-| 設計 | React / TypeScriptで編集画面を構築し、Remotionの同一映像シーンをプレビュー・MP4書き出しに使用 |
-| 品質 | MIDIの長いノートの保存・復元、ブラウザのMP4対応判定、映像・音声同期を回帰テスト |
-| 性能 | ホーム画面のJavaScript初期エントリを**約1,286KBから約231KB（約82%減）**に削減。編集画面・サムネイルを遅延読み込み |
-| 検証 | GitHub ActionsでLinux Chromium / Windows Chrome・Edgeの動作確認とデモMP4のH.264/AAC検証 |
-
-[デモ映像](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4) · [公開PC・モバイル画面の検証・スクリーンショット（Actions成果物）](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)
-
-※サイズは**最初に読み込むエントリJSファイル単体**の実測値です。アプリ全体のJavaScript転送量ではありません。モバイル画面のテストはChromiumのエミュレーションであり、物理端末の動作を保証しません。
-
-## 使い方
-
-**音源を用意しなくても試せます。** 初期状態でオリジナルのデモ音源が設定されています。
-
-1. 「動画をつくる」から編集画面に進む。
-2. 5種類のスタイルを選び、必要に応じて音源・ジャケット画像・曲名・配色を変更する。波形から使用区間も選択できる。
-3. 「MP4を書き出す」を押す。対応ブラウザでは端末内で動画を生成する。
-
-[完成動画のサンプル（8秒・540×960・MP4）](https://roki0i.github.io/SONOTYPE/sonotype-demo.mp4)は、同梱のオリジナルデモ音源からGitHub Actionsで生成したものです。通常の編集画面で書き出す動画は**1080×1920・30fps・H.264/AAC**です。
 
 ## 主な機能
 
-- **音楽に反応する5種類のテンプレート**：Signal Lab / Retro Grid / After Hours / Cover Flow / Dopa Rush
-- **音声解析**：PCMからフレーム単位で音量（RMS）と周波数帯（FFT）を計測。MIDIファイルの読み込みにも対応
-- **切り出し**：波形を見ながら1秒単位で開始位置を指定。動画尺は8秒・15秒・30秒
-- **プレビューと出力**：Remotionの同じ映像コンポーネントを使用
-- **ブラウザ内保存**：1作品の設定・音源・画像をIndexedDBへ保存・復元
+- 音量・周波数に反応する**5種類のテンプレート**、曲名・配色・ジャケットの調整
+- WAV / MP3等の音源解析、MIDIの読み込み、波形から開始位置を指定
+- **8・15・30秒／1080×1920／30fps**のH.264/AAC MP4書き出し
+- プレビューと出力に共通のRemotion映像シーンを使用
+- IndexedDBへ1作品の素材・設定を保存・復元
 
-## 初期読み込み
+**技術**：React / TypeScript / Vite / Remotion / Web Audio API / WebCodecs / IndexedDB。公開版は動画生成サーバーなしで対応ブラウザ内で書き出し、ローカル版はループバックAPIを使用します。
 
-トップページは編集用React/Remotionコードを必要になるまで読み込まず、テンプレートの映像サムネイルは画面に近づいた時点で読み込みます。編集画面へ進むと映像編集モジュールを取得します。公開用ビルドでは初期JavaScriptエントリのサイズもCIで確認します。
+## 使い方
 
-## 技術構成と設計
+1. [Webアプリ](https://roki0i.github.io/SONOTYPE/)で「動画をつくる」を選ぶ（デモ音源を同梱）。
+2. テンプレート・素材・使用区間を設定する。
+3. 「MP4を書き出す」を選ぶ。
 
-| 領域 | 技術 | 選定・実装のポイント |
-| --- | --- | --- |
-| UI | React / TypeScript / Vite | テンプレート・編集画面の状態を管理 |
-| 映像 | Remotion | プレビューとレンダリングで映像シーンを共通化 |
-| 音声 | Web Audio API / FFT / MIDI | 音源をデコードし、映像の30fpsに合わせて解析 |
-| 公開Web版 | WebCodecs / `@remotion/web-renderer` | 専用の動画生成サーバーを置かず、ブラウザ内でMP4を出力 |
-| ローカル版 | Remotion / ループバックAPI | 同じ編集データを使ってローカルで書き出し |
-| 保存 | IndexedDB | アカウント不要。素材と設定は利用したブラウザ内に保持 |
-| 品質確認 | GitHub Actions / Playwright / FFprobe | ブラウザ操作、保存・復元、映像・音声コーデックと同期を検証 |
+## ローカル起動・検証
 
-```mermaid
-flowchart TD
-    A["音源・ジャケット・MIDI"] --> B["React エディタ"]
-    B --> C["PCM解析・切り出し"]
-    C --> D["Remotion 映像シーン"]
-    B --> E["IndexedDB（ブラウザ内保存）"]
-    D --> F{"実行環境"}
-    F -->|GitHub Pages| G["WebCodecsでMP4生成"]
-    F -->|ローカル| H["Remotion APIでMP4生成"]
-```
-
-公開サイトはGitHub Pagesでホスティングしています。**音源・画像をSONOTYPE専用の動画生成サーバーに送信しません。** ただし、Remotionなどのライブラリによるテレメトリ通信が発生する場合があります。
-
-## ローカル実行・検証
-
-Node.js 24推奨、Python 3、ローカル動画生成の確認にはFFmpegが必要です。
+Node.js 24、Python 3、ローカル動画生成の検証にはFFmpegが必要です。
 
 ```bash
 cd apps/studio
 npm ci
 npm run dev
-```
-
-編集画面：`http://127.0.0.1:5173/`
-
-```bash
-# apps/studio で実行
-npm run build          # TypeScript検証・Viteビルド
-npm run render:demo    # ローカルのデモMP4生成
+npm run build
+npm run render:demo
 npm audit --audit-level=high
 ```
 
-GitHub Actionsの[CI](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml)では、単体テストに加えて、現行React版の操作・IndexedDBへの長時間MIDI保存と復元・ローカルMP4書き出しをLinux ChromiumとWindows Chrome/Edgeで検証します。旧Python/Canvas版のブラウザテストも維持しています。公開Web版のブラウザ内MP4書き出しと音声同期はLinux Chromiumで検証し、公開ビルドは[Pagesワークフロー](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)で検証・配信します。
+[CI・ブラウザE2E](https://github.com/Roki0i/SONOTYPE/actions/workflows/ci.yml) · [Pagesビルド・公開](https://github.com/Roki0i/SONOTYPE/actions/workflows/pages.yml)
 
-## 制限と注意事項
+## 制約・利用条件
 
-- 音源：WAV / MP3 / M4A / AAC / OGG（最大25MiB、長さ1時間以内）。画像：PNG / JPEG / WebP（最大5MiB）。MIDI：最大5MiB。
-- ブラウザや端末性能によりMP4の書き出しができない場合があります。**スマートフォンでのMP4出力は未保証**です。
-- 保存データは利用したブラウザ内だけに保持されます。サイトデータの削除・ストレージ制限で失われる可能性があり、別端末同期はできません。
-- 他者の音源や画像を使用する場合は、公開・投稿に必要な利用権を確認してください。
-- Remotionの商用利用では[ライセンス条件](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md)を確認してください。
+- 音源は最大25MiB・1時間、画像は最大5MiB、MIDIは最大5MiB。使用可能形式は音源WAV/MP3/M4A/AAC/OGG、画像PNG/JPEG/WebP。
+- **スマートフォンでのMP4出力は未保証**。CIのモバイル画面検証は物理端末での動作保証ではありません。
+- 素材は利用ブラウザ内に保存されます。サイトデータ削除で消える可能性があり、端末間同期はありません。
+- アップロードした音源・画像はSONOTYPE専用の動画生成サーバーへ送信しません。ただし、ライブラリのテレメトリ通信が発生する場合があります。
+- 第三者の素材の利用権を確認してください。Remotionの商用利用は[ライセンス](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md)を確認してください。
 
-### リポジトリ構成
-
-`apps/studio/src/` が現行のReactエディタ、`apps/studio/src/remotion/` が映像シーン、`tests/` がE2E・回帰テストです。
-
-ルート直下の`server.py`・`index.html`・`src/`は初期のPython/Canvas版です。現行サイトでは使用していませんが、旧版の回帰テストが参照するため残しています。既存の`OTO-*`コンポジションIDや一部内部識別子も、互換性を維持する目的で変更していません。
+現行エディタは`apps/studio/src/`、E2Eは`tests/`。ルートの旧Canvas版は回帰テスト用に保持しています。
