@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState, type CSSProperties} from 'react';
 import {Player} from '@remotion/player';
 import {TemplateScene} from './remotion/TemplateScene';
 import {demoNotes, demoAnalysis} from './remotion/defaults';
@@ -20,6 +20,18 @@ const MAX_COVER=5*1024*1024;
 const IS_PAGES=import.meta.env.VITE_PAGES_BUILD==='true';
 const DEMO_AUDIO_URL=import.meta.env.BASE_URL+'demo.wav';
 const DEMO_DURATION=16;
+// Workspace preferences are local to this browser, not part of saved media projects.
+const PANEL_WIDTH_KEY='sonotype:settings-panel-width';
+const DEFAULT_PANEL_WIDTH=328;
+const MIN_PANEL_WIDTH=280;
+const MAX_PANEL_WIDTH=560;
+const maxPanelWidth=(viewport:number)=>{
+  const templatesWidth=Math.max(214,Math.min(246,viewport*.175));
+  return Math.max(MIN_PANEL_WIDTH,Math.min(MAX_PANEL_WIDTH,viewport-templatesWidth-420));
+};
+const clampPanelWidth=(width:number,viewport:number)=>
+  Math.round(Math.min(maxPanelWidth(viewport),Math.max(MIN_PANEL_WIDTH,
+    Number.isFinite(width)?width:DEFAULT_PANEL_WIDTH)));
 const formatSeconds=(seconds:number)=>{
   const whole=Math.floor(seconds);
   return String(Math.floor(whole/60))+':'+String(whole%60).padStart(2,'0');
@@ -36,7 +48,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
   const [decodedAudio,setDecodedAudio]=useState<AudioBuffer|null>(null);
   const [platform,setPlatform]=useState<SocialId>('shorts');
   const [showSafeArea,setShowSafeArea]=useState(false);
-  const [previewWidth,setPreviewWidth]=useState(460);
+  const [previewWidth,setPreviewWidth]=useState<'fit'|460|550>('fit');
   const [settingsTab,setSettingsTab]=useState<'content'|'style'>('content');
   const [notes,setNotes]=useState<Note[]>(demoNotes);
   const [source,setSource]=useState(DEMO_AUDIO_URL);
@@ -50,6 +62,22 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
     state:'checking'|'supported'|'unsupported';message:string
   }>({state:'checking',message:'MP4書き出しの対応状況を確認中…'});
   const [saving,setSaving]=useState(false);
+  const [settingsWidth,setSettingsWidth]=useState(()=>{
+    try{
+      const stored=window.localStorage.getItem(PANEL_WIDTH_KEY);
+      return clampPanelWidth(stored===null?DEFAULT_PANEL_WIDTH:Number(stored),window.innerWidth);
+    }catch{return clampPanelWidth(DEFAULT_PANEL_WIDTH,window.innerWidth);}
+  });
+  const resizeStart=useRef<{x:number;width:number}|null>(null);
+  useEffect(()=>{
+    try{window.localStorage.setItem(PANEL_WIDTH_KEY,String(settingsWidth));}
+    catch{/* The drag still works for this session if storage is blocked. */}
+  },[settingsWidth]);
+  useEffect(()=>{
+    const syncWidth=()=>setSettingsWidth(current=>clampPanelWidth(current,window.innerWidth));
+    window.addEventListener('resize',syncWidth);
+    return ()=>window.removeEventListener('resize',syncWidth);
+  },[]);
   const uploaded=useRef<string|null>(null);
   const coverUrl=useRef<string|null>(null);
   const audioFile=useRef<File|null>(null);
@@ -242,17 +270,14 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
   if(page==='home')return <LandingPage onStart={()=>goTo('editor')}
     onPick={id=>{setTemplateId(id);goTo('editor');}}/>;
 
-  return <div className="app-shell">
+  return <div className="app-shell"
+    style={{'--settings-panel-width':settingsWidth+'px'} as CSSProperties}>
     <aside className="templates-sidebar">
       <div className="brand">
         <div className="brand-mark" aria-hidden="true">≋</div>
         <div><strong>SONOTYPE</strong><small>CREATE MUSIC VISUALS</small></div>
       </div>
-      <div className="sidebar-intro">
-        <span className="eyebrow">01 / VISUAL STYLE</span>
-        <h2>スタイル</h2>
-        <p>仕上がりの画面から選ぶ。</p>
-      </div>
+      <div className="sidebar-intro"><h2>テンプレート</h2></div>
       <div className="template-gallery" aria-label="テンプレート一覧">
         {TEMPLATES.map((entry,i)=>
           <button key={entry.id} type="button"
@@ -274,8 +299,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
 
     <main className="editor-stage">
       <header className="editor-topbar">
-        <div><button className="back-to-home" type="button" onClick={()=>goTo('home')}>← ホームへ</button>
-          <span className="eyebrow">MUSIC VISUAL CREATOR</span><h1>音楽を、見せる。</h1></div>
+        <button className="back-to-home" type="button" onClick={()=>goTo('home')}>← ホーム</button>
         <span className="workspace-status"><span className="status-dot"/>{IS_PAGES?'ブラウザ制作':'ローカル制作'}</span>
       </header>
       <div className="canvas-area">
@@ -285,7 +309,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
           <div className="canvas-display-options">
             <span className="canvas-format">9:16 <span className="toolbar-dot">•</span> 1080 × 1920 <span className="toolbar-dot">•</span> 30 FPS</span>
             <div className="preview-zoom" role="group" aria-label="プレビューサイズ">
-              {([{size:340,label:'小'},{size:460,label:'標準'},{size:550,label:'大'}] as const).map(option=>
+              {([{size:'fit',label:'フィット'},{size:460,label:'標準'},{size:550,label:'大'}] as const).map(option=>
                 <button key={option.size} type="button" className="preview-zoom-button"
                   aria-pressed={previewWidth===option.size}
                   onClick={()=>setPreviewWidth(option.size)}>{option.label}</button>)}
@@ -295,7 +319,8 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
           </div>
         </div>
         <div className="preview-shell">
-          <div className="player-with-guide" style={{maxWidth:previewWidth}}>
+          <div className="player-with-guide"
+            style={previewWidth==='fit'?undefined:{width:'100%',maxWidth:previewWidth}}>
             <Player key={seconds+'-'+selectedStartFrame} component={TemplateScene} inputProps={props}
               durationInFrames={seconds*FPS} fps={FPS} compositionWidth={1080} compositionHeight={1920}
               // Keep the audio stream alive while paused, instead of suspending
@@ -315,7 +340,46 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
     </main>
 
     <aside className="settings-sidebar">
-      <div className="settings-header"><span className="eyebrow">02 / YOUR WORK</span><h2>編集</h2></div>
+      <div className="panel-resize-handle" role="separator" tabIndex={0}
+        aria-label="編集パネルの幅を変更" aria-orientation="vertical"
+        aria-valuemin={MIN_PANEL_WIDTH} aria-valuemax={maxPanelWidth(window.innerWidth)}
+        aria-valuenow={settingsWidth}
+        title="ドラッグで幅を変更。ダブルクリックで元に戻す"
+        onPointerDown={event=>{
+          if(event.button!==0)return;
+          resizeStart.current={x:event.clientX,width:settingsWidth};
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={event=>{
+          if(!resizeStart.current)return;
+          setSettingsWidth(clampPanelWidth(
+            resizeStart.current.width+resizeStart.current.x-event.clientX,
+            window.innerWidth));
+        }}
+        onPointerUp={event=>{
+          resizeStart.current=null;
+          if(event.currentTarget.hasPointerCapture(event.pointerId)){
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+        }}
+        onPointerCancel={()=>{resizeStart.current=null;}}
+        onLostPointerCapture={()=>{resizeStart.current=null;}}
+        onKeyDown={event=>{
+          let next:number|undefined;
+          if(event.key==='ArrowLeft')next=settingsWidth+16;
+          else if(event.key==='ArrowRight')next=settingsWidth-16;
+          else if(event.key==='Home')next=MIN_PANEL_WIDTH;
+          else if(event.key==='End')next=MAX_PANEL_WIDTH;
+          if(next!==undefined){
+            event.preventDefault();
+            setSettingsWidth(clampPanelWidth(next,window.innerWidth));
+          }
+        }}
+        onDoubleClick={()=>setSettingsWidth(clampPanelWidth(
+          DEFAULT_PANEL_WIDTH,window.innerWidth))}/>
+      <div className="settings-header">
+        <strong>編集</strong><span>境界をドラッグして幅変更</span>
+      </div>
       <div className="project-actions" aria-label="ローカルプロジェクト">
         <button type="button" onClick={()=>void saveCurrentProject()} disabled={loading||exporting||saving}>保存</button>
         <button type="button" onClick={()=>void restoreSavedProject()} disabled={loading||exporting||saving}>復元</button>
