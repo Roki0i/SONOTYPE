@@ -273,10 +273,11 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
   return <div className="app-shell"
     style={{'--settings-panel-width':settingsWidth+'px'} as CSSProperties}>
     <aside className="templates-sidebar">
-      <div className="brand">
-        <div className="brand-mark" aria-hidden="true">≋</div>
-        <div><strong>SONOTYPE</strong><small>CREATE MUSIC VISUALS</small></div>
-      </div>
+      <button className="brand brand-home" type="button" onClick={()=>goTo('home')}
+        aria-label="SONOTYPE ホームへ" title="ホームへ戻る">
+        <span className="brand-mark" aria-hidden="true">≋</span>
+        <span><strong>SONOTYPE</strong><small>CREATE MUSIC VISUALS</small></span>
+      </button>
       <div className="sidebar-intro"><h2>テンプレート</h2></div>
       <div className="template-gallery" aria-label="テンプレート一覧">
         {TEMPLATES.map((entry,i)=>
@@ -298,14 +299,12 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
     </aside>
 
     <main className="editor-stage">
-      <header className="editor-topbar">
-        <button className="back-to-home" type="button" onClick={()=>goTo('home')}>← ホーム</button>
-        <span className="workspace-status"><span className="status-dot"/>{IS_PAGES?'ブラウザ制作':'ローカル制作'}</span>
-      </header>
       <div className="canvas-area">
 
         <div className="canvas-toolbar">
-          <span><b>プレビュー</b> / {TEMPLATES.find(t=>t.id===templateId)?.name}</span>
+          <span className="canvas-title"><b>プレビュー</b> / {TEMPLATES.find(t=>t.id===templateId)?.name}
+            <span className="workspace-status"><span className="status-dot"/>{IS_PAGES?'ブラウザ制作':'ローカル制作'}</span>
+          </span>
           <div className="canvas-display-options">
             <span className="canvas-format">9:16 <span className="toolbar-dot">•</span> 1080 × 1920 <span className="toolbar-dot">•</span> 30 FPS</span>
             <div className="preview-zoom" role="group" aria-label="プレビューサイズ">
@@ -337,6 +336,38 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
         </div>
         <p className="editor-caption">テンプレート・文字・配色はすぐ反映。ガイド枠はMP4に含まれません。</p>
       </div>
+      <section className="timeline-panel" aria-label="曲の使用区間">
+        <div className="timeline-top">
+          <h2>曲の使用区間</h2>
+          <div className="timeline-duration">
+            <span>動画の長さ</span>
+            <div className="length-options" role="group" aria-label="動画の長さ">
+              {[8,15,30].map(n=><button key={n} type="button" aria-pressed={seconds===n}
+                className={seconds===n?'active':''} onClick={()=>setSeconds(n)}>{n}秒</button>)}
+            </div>
+          </div>
+        </div>
+        <div className="clip-positions">
+          <span>開始 <strong>{formatSeconds(clipStartSeconds)}</strong></span>
+          <span>終了 <strong>{formatSeconds(Math.min(sourceDuration,clipStartSeconds+seconds))}</strong></span>
+        </div>
+        <ClipWaveform
+          audio={decodedAudio} demoLevels={demoAnalysis.levels}
+          duration={sourceDuration} clipSeconds={seconds}
+          startFrame={selectedStartFrame} maxStartFrame={maxStartFrame}
+          disabled={loading||exporting||maxStartFrame===0}
+          onStartFrameChange={setStartFrame}/>
+        <input id="clip-start" aria-label="切り出し開始位置" className="clip-range" type="range"
+          min={0} max={maxStartFrame} step={FPS} value={selectedStartFrame}
+          disabled={loading||exporting||maxStartFrame===0}
+          onChange={event=>setStartFrame(Number(event.target.value))}/>
+        <div className="clip-ruler"><span>0:00</span><span>音源 {formatSeconds(sourceDuration)}</span></div>
+        <p className="setting-note">
+          {maxStartFrame===0
+            ? (sourceDuration<seconds?'音源が短いため、残りは無音になります。':'この動画尺では開始位置を変更できません。')
+            : '波形をタップ／ドラッグして開始位置を選択（1秒単位）。下のスライダーはキーボードでも操作できます。'}
+        </p>
+      </section>
     </main>
 
     <aside className="settings-sidebar">
@@ -418,29 +449,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
             onChange={e=>{void setMidi(e.target.files?.[0]);e.target.value='';}}/>
         </label>
       </section>
-      <section className="settings-section clip-section">
-        <h3>曲の使用区間</h3>
-        <div className="clip-positions">
-          <span>開始 <strong>{formatSeconds(clipStartSeconds)}</strong></span>
-          <span>終了 <strong>{formatSeconds(Math.min(sourceDuration,clipStartSeconds+seconds))}</strong></span>
-        </div>
-        <ClipWaveform
-          audio={decodedAudio} demoLevels={demoAnalysis.levels}
-          duration={sourceDuration} clipSeconds={seconds}
-          startFrame={selectedStartFrame} maxStartFrame={maxStartFrame}
-          disabled={loading||exporting||maxStartFrame===0}
-          onStartFrameChange={setStartFrame}/>
-        <input id="clip-start" aria-label="切り出し開始位置" className="clip-range" type="range"
-          min={0} max={maxStartFrame} step={FPS} value={selectedStartFrame}
-          disabled={loading||exporting||maxStartFrame===0}
-          onChange={event=>setStartFrame(Number(event.target.value))}/>
-        <div className="clip-ruler"><span>0:00</span><span>音源 {formatSeconds(sourceDuration)}</span></div>
-        <p className="setting-note">
-          {maxStartFrame===0
-            ? (sourceDuration<seconds?'音源が短いため、残りは無音になります。':'この動画尺では開始位置を変更できません。')
-            : '波形をタップ／ドラッグして開始位置を選択（1秒単位）。下のスライダーはキーボードでも操作できます。'}
-        </p>
-      </section>
+
       <section className="settings-section">
         <h3>文字の編集</h3>
         <label className="field-label" htmlFor="song-title">曲名</label>
@@ -472,13 +481,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
         </div>
         <p className="setting-note">どの投稿先も9:16の同じMP4です。安全領域の表示は目安で、アプリのUIによって変わります。</p>
       </section>
-      <section className="settings-section">
-        <h3>動画の長さ</h3>
-        <div className="length-options" role="group" aria-label="動画の長さ">
-          {[8,15,30].map(n=><button key={n} type="button" aria-pressed={seconds===n}
-            className={seconds===n?'active':''} onClick={()=>setSeconds(n)}>{n}秒</button>)}
-        </div>
-      </section>
+
         </div>
       </div>
       <div className="export-panel">
