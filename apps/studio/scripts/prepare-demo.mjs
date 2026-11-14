@@ -45,5 +45,5 @@ const data=new Float32Array(chunk.length/2);
 for(let i=0;i<data.length;i++)data[i]=chunk.readInt16LE(i*2)/32768;
 const measured=analyzePcm(data,format.sampleRate,30);
 writeFileSync(resolve(output,'demo-analysis.json'),JSON.stringify(measured));
-console.log('Measured FFT spectrum and RMS for original demo');
+console.log('Measured FFT spectrum, RMS and onsets for original demo');
 

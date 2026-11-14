@@ -22,7 +22,7 @@ const DURATIONS = new Set([8, 15, 30]);
 
 export function validateMetadata(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Error('Invalid props');
-  const {title, artist = '', templateId = 'signal', theme, seconds, levels, spectrum, bands, notes, startFrame = 0} = raw;
+  const {title, artist = '', templateId = 'signal', theme, seconds, levels, spectrum, bands, beatStrength, notes, startFrame = 0} = raw;
   if (typeof title !== 'string' || title.length < 1 || title.length > 64 || /[\x00-\x1f]/.test(title)) {
     throw Error('Invalid title');
   }
@@ -39,13 +39,19 @@ export function validateMetadata(raw) {
       row.every(v => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1));
   if (!rowValid(spectrum, 26)) throw Error('Invalid FFT spectrum');
   if (!rowValid(bands, 3)) throw Error('Invalid frequency bands');
+  if (beatStrength !== undefined && (!Array.isArray(beatStrength) ||
+    beatStrength.length !== seconds * 30 || !beatStrength.every(v =>
+      typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1))) {
+    throw Error('Invalid beat strengths');
+  }
   if (!Array.isArray(notes) || notes.length > 20000 ||
     !notes.every(n => n && typeof n === 'object' && Number.isInteger(n.pitch) &&
       n.pitch >= 0 && n.pitch <= 127 && Number.isFinite(n.time) && n.time >= 0 &&
       n.time <= 3600 && Number.isFinite(n.duration) && n.duration > 0 && n.duration <= 120)) {
     throw Error('Invalid MIDI notes');
   }
-  return {title, artist, templateId, theme, seconds, startFrame, levels, spectrum, bands, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
+  return {title, artist, templateId, theme, seconds, startFrame, levels, spectrum, bands,
+    beatStrength, notes: notes.map(n => ({pitch:n.pitch,time:n.time,duration:n.duration}))};
 }
 
 export function validateAudio(bytes, extension) {
@@ -178,7 +184,7 @@ export function makeExportServer({render=cliRender}={}){
       const props={
         title:metadata.title,artist:metadata.artist,templateId:metadata.templateId,
         theme:metadata.theme,startFrame:metadata.startFrame,notes:metadata.notes,levels:metadata.levels,
-        spectrum:metadata.spectrum,bands:metadata.bands,
+        spectrum:metadata.spectrum,bands:metadata.bands,beatStrength:metadata.beatStrength,
         audioSrc:'static:render-uploads/'+relative+'/'+fileName,
         coverSrc:coverExtension?'static:render-uploads/'+relative+'/cover'+coverExtension:''
       };

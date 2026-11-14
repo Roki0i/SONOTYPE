@@ -41,7 +41,16 @@ test('Invalid duration, level, and MIDI rejected',()=>{
   assert.throws(()=>validateMetadata({...base,spectrum:[]}),/FFT/);
   assert.throws(()=>validateMetadata({...base,spectrum:[...base.spectrum.slice(0,-1),[-1,...Array(25).fill(0)]]}),/FFT/);
   assert.throws(()=>validateMetadata({...base,bands:base.bands.map(row=>row.slice(0,2))}),/bands/);
+  assert.throws(()=>validateMetadata({...base,beatStrength:[NaN]}),/beat/);
+  assert.throws(()=>validateMetadata({...base,beatStrength:Array(240).fill(1.1)}),/beat/);
   assert.throws(()=>validateMetadata({...base,notes:[{pitch:-1,time:0,duration:.2}]}),/MIDI/);
+});
+test('Beat strengths cross the local export boundary intact',async()=>{
+  const beatStrength=Array(240).fill(0);
+  beatStrength[15]=.75;
+  const response=await request({props:{...base,beatStrength}});
+  assert.equal(response.status,200);
+  assert.deepEqual(lastExportProps.beatStrength,beatStrength);
 });
 test('Audio signature must match file extension',()=>{
   assert.equal(validateAudio(audio,'.wav'),true);

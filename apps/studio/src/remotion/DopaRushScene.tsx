@@ -1,6 +1,7 @@
 import {AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Audio} from '@remotion/media';
 import type {SceneProps, Theme} from './types';
+import {dopaRushTiming} from './dopa-rush-timing.mjs';
 
 /**
  * High-energy short-video template.
@@ -16,7 +17,7 @@ const cap=(v:number)=>Math.max(0,Math.min(1,v));
 const words=['FEEL THE BEAT','FULL VOLUME','ON REPEAT','TURN IT UP'];
 
 export const DopaRushScene:React.FC<SceneProps>=({
-  title,artist='',theme,audioSrc,startFrame=0,coverSrc='',levels,spectrum,bands
+  title,artist='',theme,audioSrc,startFrame=0,coverSrc='',levels,spectrum,bands,beatStrength
 })=>{
   const frame=useCurrentFrame();
   const {fps,durationInFrames}=useVideoConfig();
@@ -25,9 +26,11 @@ export const DopaRushScene:React.FC<SceneProps>=({
   const level=cap(levels[frame]??0);
   const low=cap(bands[frame]?.[0]??0);
   const energy=cap(level*.6+low*.4);
-  const scale=1+energy*.075;
+  // Both player and renderer use the same frame index, including trimmed audio.
+  const {pulse,tickerIndex}=dopaRushTiming(beatStrength,frame,fps);
+  const scale=1+energy*.03+pulse*.045;
   const bins=spectrum[frame]??Array(26).fill(0);
-  const ticker=words[Math.floor(seconds/.8)%words.length];
+  const ticker=words[tickerIndex%words.length];
   const progress=(frame+1)/durationInFrames;
   const audio=audioSrc.startsWith('static:')?staticFile(audioSrc.slice(7)):audioSrc;
   const artwork=coverSrc.startsWith('static:')?staticFile(coverSrc.slice(7)):coverSrc;

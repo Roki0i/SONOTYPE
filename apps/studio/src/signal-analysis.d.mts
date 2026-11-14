@@ -5,6 +5,7 @@ export interface AudioAnalysis {
   levels: number[];
   spectrum: number[][];
   bands: number[][];
+  beatStrength: number[];
 }
 export declare function analyzePcm(
   samples: Float32Array, sampleRate: number, seconds: number, fps?: number

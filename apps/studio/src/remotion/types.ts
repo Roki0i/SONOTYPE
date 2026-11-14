@@ -10,6 +10,7 @@ export type SceneProps = {
   levels:number[];
   spectrum:number[][];
   bands:number[][];
+  beatStrength?:number[];
   templateId?:TemplateId;
   artist?:string;
   coverSrc?:string;
