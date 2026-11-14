@@ -37,13 +37,15 @@ def await_server(proc, timeout=60):
 
 def inspect(path):
     info=json.loads(subprocess.check_output([
-        'ffprobe','-v','error','-show_streams','-of','json',str(path)],
+        'ffprobe','-v','error','-show_streams','-show_format','-of','json',str(path)],
         text=True,timeout=30))
     video=next(s for s in info['streams'] if s['codec_type']=='video')
     sound=next(s for s in info['streams'] if s['codec_type']=='audio')
     assert video['codec_name']=='h264'
     assert (video['width'],video['height'])==(1080,1920)
     assert sound['codec_name']=='aac'
+    duration=float(info['format']['duration'])
+    assert abs(duration-8.0)<0.25, f'Exported MP4 duration {duration:.3f}s, expected 8s'
     assert path.stat().st_size>1000
     measured=subprocess.run(['ffmpeg','-hide_banner','-i',str(path),
         '-vn','-af','volumedetect','-f','null','-'],
@@ -204,6 +206,31 @@ def main():
                     page.locator("button.settings-tab").nth(1).click()
                     page.locator("button.settings-tab").first.click()
                     assert page.locator('#song-title').input_value() == 'WEB EXPORT TEST'
+                    # A failed IndexedDB write must not replace the previous snapshot.
+                    # Force a quota error at the storage boundary without altering app code.
+                    page.locator('#song-title').fill('UNSAVED AFTER QUOTA ERROR')
+                    page.evaluate("""() => {
+                        window.__sonotypeOriginalPut = IDBObjectStore.prototype.put;
+                        IDBObjectStore.prototype.put = function() {
+                            throw new DOMException('Storage quota reached', 'QuotaExceededError');
+                        };
+                    }""")
+                    try:
+                        page.get_by_role('button',name='保存',exact=True).click()
+                        page.get_by_role('status').filter(
+                            has_text='保存に失敗しました').wait_for(timeout=12000)
+                    finally:
+                        page.evaluate("""() => {
+                            IDBObjectStore.prototype.put = window.__sonotypeOriginalPut;
+                            delete window.__sonotypeOriginalPut;
+                        }""")
+                    page.get_by_role('button',name='復元',exact=True).click()
+                    page.get_by_role('status').filter(
+                        has_text='復元しました').wait_for(timeout=60000)
+                    assert page.locator('#song-title').input_value() == 'WEB EXPORT TEST'
+                    assert page.locator('.clip-waveform').get_attribute(
+                        'data-waveform-source') == 'uploaded'
+                    print('INDEXEDDB QUOTA RECOVERY PASS: existing media project preserved',flush=True)
                     export_box=page.locator('button.export-button').bounding_box()
                     assert export_box is not None
                     assert export_box['y']>=0 and export_box['y']+export_box['height']<=900
