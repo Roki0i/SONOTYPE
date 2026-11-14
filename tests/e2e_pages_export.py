@@ -174,6 +174,9 @@ def main():
                     assert waveform.locator('svg path').count()==2
                     assert len(waveform.locator('svg path').first.get_attribute('d'))>100
                     # Drag across the uploaded source: the selected 8s interval begins at 8s.
+                    # The settings pane scrolls independently. Ensure manual mouse
+                    # coordinates target the visible waveform after changing tabs.
+                    waveform.scroll_into_view_if_needed()
                     bounds=waveform.bounding_box()
                     assert bounds is not None
                     y=bounds['y']+bounds['height']/2
@@ -181,6 +184,9 @@ def main():
                     page.mouse.down()
                     page.mouse.move(bounds['x']+bounds['width']*.5,y,steps=5)
                     page.mouse.up()
+                    page.wait_for_function(
+                        "() => document.querySelector('#clip-start')?.value === '240'",
+                        timeout=5000)
                     assert clip.input_value()=='240'
                     clip.focus()
                     clip.press('Home')
