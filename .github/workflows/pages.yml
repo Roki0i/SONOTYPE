@@ -71,7 +71,8 @@ jobs:
   smoke:
     name: Public desktop/mobile browser smoke
     needs: [build, deploy]
-    if: ${{ always() && needs.build.result == 'success' && (github.event_name == 'pull_request' || needs.deploy.result == 'success') }}
+    # PRs validate the candidate bundle in CI; public-site smoke only follows a successful deploy.
+    if: ${{ always() && needs.build.result == 'success' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
