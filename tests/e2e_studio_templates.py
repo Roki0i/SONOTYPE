@@ -138,6 +138,43 @@ def main():
                     cards = page.locator("button.template-card")
                     cards.first.wait_for(state="visible", timeout=30000)
                     assert cards.count() == 5, "Expected five template options"
+                    # Editing controls should fit in the default desktop viewport.
+                    assert not page.get_by_text("音楽を、見せる。").count()
+                    assert page.locator(".preview-zoom-button").first.get_attribute("aria-pressed") == "true"
+                    scroll = page.locator(".editor-stage").evaluate(
+                        "(el) => [el.scrollHeight, el.clientHeight]")
+                    assert scroll[0] <= scroll[1] + 3, f"Default editor requires vertical scroll: {scroll}"
+                    # Premiere-style panel edge: mouse, keyboard, and browser persistence.
+                    divider = page.get_by_role("separator", name="編集パネルの幅を変更")
+                    assert divider.is_visible()
+                    panel = page.locator(".settings-sidebar")
+                    original_width = panel.bounding_box()["width"]
+                    handle = divider.bounding_box()
+                    x = handle["x"] + handle["width"] / 2
+                    y = handle["y"] + 100
+                    page.mouse.move(x, y)
+                    page.mouse.down()
+                    page.mouse.move(x - 70, y, steps=6)
+                    page.mouse.up()
+                    expanded_width = panel.bounding_box()["width"]
+                    assert expanded_width >= original_width + 50, (
+                        f"Panel drag failed: {original_width} -> {expanded_width}")
+                    assert int(page.evaluate(
+                        "localStorage.getItem('sonotype:settings-panel-width')"
+                    )) >= original_width + 50
+                    divider.focus()
+                    divider.press("ArrowRight")
+                    assert panel.bounding_box()["width"] < expanded_width
+                    adjusted_width = panel.bounding_box()["width"]
+                    page.reload(wait_until="networkidle", timeout=90000)
+                    divider = page.get_by_role("separator", name="編集パネルの幅を変更")
+                    divider.wait_for(state="visible", timeout=30000)
+                    assert abs(panel.bounding_box()["width"] - adjusted_width) <= 2, (
+                        "Panel width preference did not survive reload")
+                    divider.dblclick(position={"x": 7, "y": 100})
+                    assert abs(panel.bounding_box()["width"] - original_width) <= 2, (
+                        "Double-click did not reset the panel width")
+                    assert not errors, errors
 
                     for i in (0, 1, 2, 3, 4):
                         cards.nth(i).click()
