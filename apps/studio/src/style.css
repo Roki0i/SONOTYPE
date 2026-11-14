@@ -77,6 +77,22 @@ button:focus-visible,input:focus-visible {
   letter-spacing:1.2px;
   color:#aaa89c
 }
+/* The brand is the only Home navigation in the editor. */
+.brand-home {
+  width:100%;
+  border:0;
+  border-bottom:1px solid #3d4038;
+  background:#151713;
+  color:inherit;
+  text-align:left;
+  flex-shrink:0;
+}
+.brand-home:hover {
+  background:#242720;
+}
+.brand-home:focus-visible {
+  outline-offset:-3px;
+}
 .sidebar-intro {
   padding:13px 18px 7px;
 }
@@ -210,31 +226,9 @@ button:focus-visible,input:focus-visible {
   background:#e7e5dc;
   color:#252722;
 }
-.editor-topbar {
-  min-height:50px;
-  padding:8px 22px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:16px;
-  border-bottom:1px solid #c5c2b7;
-}
-.back-to-home {
-  display:block;
-  padding:6px 0;
-  margin:0;
-  border:0;
-  background:transparent;
-  color:#625b50;
-  font-size:12px;
-  text-decoration:underline;
-  text-underline-offset:4px;
-}
-.back-to-home:hover {
-  color:#111310
-}
+
 .workspace-status {
-  padding:9px 12px;
+  padding:5px 8px;
   color:#4d5145;
   border:1px solid #b9baad;
   background:transparent;
@@ -255,7 +249,11 @@ button:focus-visible,input:focus-visible {
   width:100%;
   max-width:1000px;
   margin:0 auto;
-  padding:14px 20px 18px
+  padding:12px 18px 10px;
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
 }
 .canvas-toolbar {
   display:flex;
@@ -270,6 +268,12 @@ button:focus-visible,input:focus-visible {
 .canvas-toolbar b {
   font-weight:700;
   color:#2e312a
+}
+.canvas-title {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
 }
 .canvas-display-options {
   display:flex;
@@ -332,18 +336,20 @@ button:focus-visible,input:focus-visible {
 }
 .preview-shell {
   display:flex;
-  align-items:flex-start;
+  flex:1;
+  align-items:center;
   justify-content:center;
   min-height:0;
   padding:12px 14px;
+  overflow:auto;
   background:#d3d2c9;
   border:1px solid #c4c2b7;
   border-radius:0;
 }
 .player-with-guide {
   position:relative;
-  /* 9:16 fit mode leaves room for the toolbar, player controls, and caption. */
-  width:min(100%,max(220px,calc(56.25dvh - 110px)));
+  /* Fit the 9:16 preview above the bottom audio timeline on desktop. */
+  width:min(100%,max(200px,calc(56.25dvh - 205px)));
   max-width:460px;
   margin:auto;
   flex:none;
@@ -378,7 +384,60 @@ button:focus-visible,input:focus-visible {
   font-size:11px;
   color:#74756b;
   text-align:center;
-  margin:10px 0 0
+  margin:8px 0 0
+}
+/* Timeline is always accessible below the preview, not hidden in settings tabs. */
+.timeline-panel {
+  width:100%;
+  flex-shrink:0;
+  padding:10px 18px 12px;
+  background:#f1eee6;
+  border-top:1px solid #bcb5a7;
+}
+.timeline-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:6px;
+}
+.timeline-top h2 {
+  margin:0;
+  font-size:13px;
+  font-weight:700;
+}
+.timeline-duration {
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.timeline-duration > span {
+  font-size:11px;
+  white-space:nowrap;
+  color:#5e6056;
+}
+.timeline-duration .length-options button {
+  min-width:47px;
+  padding:7px 10px;
+}
+.timeline-panel .clip-positions {
+  margin-bottom:5px;
+}
+.timeline-panel .clip-positions strong {
+  font-size:15px;
+}
+.timeline-panel .clip-waveform {
+  height:62px;
+  margin:5px 0 8px;
+}
+.timeline-panel .clip-ruler {
+  margin-top:3px;
+}
+.timeline-panel .setting-note {
+  margin:6px 0 0;
+  font-size:10px;
+  line-height:1.4;
 }
 .settings-sidebar {
   position:relative;
@@ -834,11 +893,8 @@ button:focus-visible,input:focus-visible {
   }
 }
 @media (max-width:1200px) {
-  .editor-topbar {
-    padding:8px 16px
-  }
   .canvas-area {
-    padding:12px 13px 17px
+    padding:10px 13px 8px
   }
   .brand {
     padding:16px 12px
@@ -931,15 +987,20 @@ button:focus-visible,input:focus-visible {
   .aside-foot {
     display:none
   }
-  .editor-topbar {
-    padding:8px 18px
-  }
   .workspace-status {
     font-size:10px;
-    padding:8px
+    padding:5px 7px
   }
   .canvas-area {
-    padding:17px
+    padding:14px;
+    flex:none;
+  }
+  .preview-shell {
+    flex:none;
+    overflow:visible;
+  }
+  .timeline-panel {
+    padding:14px;
   }
   .canvas-display-options {
     justify-content:flex-start
