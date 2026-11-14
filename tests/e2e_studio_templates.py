@@ -138,6 +138,25 @@ def main():
                     cards = page.locator("button.template-card")
                     cards.first.wait_for(state="visible", timeout=30000)
                     assert cards.count() == 5, "Expected five template options"
+                    # The brand is now the sole Home navigation.
+                    home_logo = page.get_by_role("button", name="SONOTYPE ホームへ")
+                    assert home_logo.is_visible()
+                    home_logo.click()
+                    page.locator(".oto-hero").wait_for(state="visible", timeout=15000)
+                    page.locator("button.oto-main-cta").first.click()
+                    cards.first.wait_for(state="visible", timeout=15000)
+                    # Timeline, clip length and waveform share an always-visible bottom dock.
+                    timeline = page.locator(".timeline-panel")
+                    assert timeline.count() == 1
+                    assert timeline.locator(".clip-waveform").count() == 1
+                    assert timeline.locator(".length-options button").count() == 3
+                    assert not page.locator(".settings-sidebar .clip-waveform").count()
+                    timeline_box = timeline.bounding_box()
+                    preview_box = page.locator(".preview-shell").bounding_box()
+                    assert timeline_box and preview_box
+                    assert timeline_box["y"] >= preview_box["y"] + preview_box["height"] - 2
+                    assert timeline_box["y"] + timeline_box["height"] <= 903, (
+                        f"Bottom timeline is not visible in default viewport: {timeline_box}")
                     # Editing controls should fit in the default desktop viewport.
                     assert not page.get_by_text("音楽を、見せる。").count()
                     assert page.locator(".preview-zoom-button").first.get_attribute("aria-pressed") == "true"
@@ -197,9 +216,11 @@ def main():
                     assert page.locator(".safe-zone-guide").count() == 0
                     page.locator("button.theme-option.theme-violet").click()
                     assert page.locator("button.theme-option.theme-violet").get_attribute("aria-pressed") == "true"
-                    page.locator("button.length-options").count()  # Keep original test independent of CSS layout
-                    page.locator("div.length-options button").first.click()
-                    assert page.locator("div.length-options button").first.get_attribute("aria-pressed") == "true"
+                    page.locator(".timeline-panel .length-options button").first.click()
+                    assert page.locator(".timeline-panel .length-options button").first.get_attribute(
+                        "aria-pressed") == "true"
+                    assert tabs.nth(1).get_attribute("aria-pressed") == "true", (
+                        "Changing video duration must not change the settings tab")
                     tabs.first.click()
                     assert page.locator("#settings-content").is_visible()
                     assert not page.locator("#settings-style").is_visible()
@@ -275,6 +296,8 @@ def main():
                     overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
                     assert overflow <= 2, f"Mobile editor overflow: {overflow}px"
                     assert page.locator("button.settings-tab").count() == 2
+                    assert page.locator(".timeline-panel .length-options button").count() == 3
+                    assert page.locator(".timeline-panel .clip-waveform").count() == 1
                     page.set_viewport_size({"width":1440,"height":900})
                     if errors:
                         raise RuntimeError("React page errors: " + " | ".join(errors))
