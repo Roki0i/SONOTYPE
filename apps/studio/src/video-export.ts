@@ -44,7 +44,8 @@ export async function renderMp4({
   form.append('props',JSON.stringify({
     title:props.title,artist:props.artist,templateId:props.templateId,
     theme:props.theme,seconds,startFrame:props.startFrame,
-    notes:props.notes,levels:props.levels,spectrum:props.spectrum,bands:props.bands
+    notes:props.notes,levels:props.levels,spectrum:props.spectrum,bands:props.bands,
+    beatStrength:props.beatStrength
   }));
   const response=await fetch('/api/export',{method:'POST',body:form});
   if(!response.ok){

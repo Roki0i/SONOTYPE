@@ -5,6 +5,8 @@
  * frame; no wall-clock AnalyserNode, smoothing across frames or simulated bars.
  * FFT 1024 samples, Hann window, logarithmic 26-bin frequency mapping.
  * Output values are bounded 0..1 and rounded for safe JSON transport.
+ * Onsets require a PCM RMS attack plus positive spectral change; they are
+ * clip-relative measurements, not a synthesized tempo grid.
  */
 export const FFT_SIZE = 1024;
 export const BIN_COUNT = 26;
@@ -70,11 +72,15 @@ export function analyzePcm(samples, sampleRate, seconds, fps = FPS) {
   const levels = new Array(count);
   const spectrum = new Array(count);
   const bands = new Array(count);
+  const beatStrength = new Array(count).fill(0);
+  const rms = new Float64Array(count);
+  const flux = new Float64Array(count);
   const nyquist = sampleRate / 2;
   const maximum = Math.min(HIGH_HZ, nyquist * 0.98);
   const re = new Float64Array(FFT_SIZE);
   const im = new Float64Array(FFT_SIZE);
   const binPowers = new Float64Array(BIN_COUNT);
+  const previousPowers = new Float64Array(BIN_COUNT);
 
   for (let frame = 0; frame < count; frame++) {
     const begin = Math.floor(frame * sampleRate / fps);
@@ -84,7 +90,8 @@ export function analyzePcm(samples, sampleRate, seconds, fps = FPS) {
       const value = samples[i] || 0;
       energy += value * value;
     }
-    levels[frame] = precision(end > begin ? Math.sqrt(energy / (end - begin)) * 2.4 : 0);
+    rms[frame] = end > begin ? Math.sqrt(energy / (end - begin)) : 0;
+    levels[frame] = precision(rms[frame] * 2.4);
 
     const center = Math.floor((frame + 0.5) * sampleRate / fps);
     re.fill(0); im.fill(0); binPowers.fill(0);
@@ -98,6 +105,7 @@ export function analyzePcm(samples, sampleRate, seconds, fps = FPS) {
     if (windowEnergy < 1e-7) {
       spectrum[frame] = Array(BIN_COUNT).fill(0);
       bands[frame] = [0, 0, 0];
+      previousPowers.fill(0);
       continue;
     }
     fft(re, im);
@@ -108,6 +116,16 @@ export function analyzePcm(samples, sampleRate, seconds, fps = FPS) {
       const b = frequencyIndex(hz, maximum);
       binPowers[b] = Math.max(binPowers[b], magnitude);
     }
+    // Positive spectral change alone is not a beat: it must coincide with
+    // a fast, measurable attack in the source PCM.
+    let positive = 0;
+    let total = 0;
+    for (let b = 0; b < BIN_COUNT; b++) {
+      positive += Math.max(0, binPowers[b] - previousPowers[b]);
+      total += binPowers[b];
+      previousPowers[b] = binPowers[b];
+    }
+    flux[frame] = total > 0 ? positive / total : 0;
     const row = Array.from(binPowers, displayMagnitude);
     spectrum[frame] = row;
     // Labels correspond to actual spectral frequency ranges (not arbitrary
@@ -120,7 +138,20 @@ export function analyzePcm(samples, sampleRate, seconds, fps = FPS) {
     }
     bands[frame] = measured;
   }
-  return {levels, spectrum, bands};
+  // Frame zero has no preceding source context. Treating it as an attack
+  // would invent a beat whenever a clip starts in the middle of a note.
+  let lastOnset = -FPS;
+  for (let frame = 1; frame < count; frame++) {
+    const previous = rms[frame - 1];
+    const attack = rms[frame] - previous;
+    if (rms[frame] < 0.025 || attack < 0.02 ||
+        attack < Math.max(previous, 0.015) * 0.35 ||
+        flux[frame] < 0.18 || frame - lastOnset < 8) continue;
+    // The strength is bounded and based on the transient, not loudness.
+    beatStrength[frame] = precision(Math.min(attack / 0.12, flux[frame]));
+    lastOnset = frame;
+  }
+  return {levels, spectrum, bands, beatStrength};
 }
 
 /**
@@ -137,6 +168,7 @@ export function trimAnalysis(analysis, count, offsetFrames = 0) {
   return {
     levels: Array.from({length:count},(_,i)=>analysis.levels[offsetFrames+i]??0),
     spectrum: Array.from({length:count},(_,i)=>analysis.spectrum[offsetFrames+i]??zeroSpectrum),
-    bands: Array.from({length:count},(_,i)=>analysis.bands[offsetFrames+i]??zeroBands)
+    bands: Array.from({length:count},(_,i)=>analysis.bands[offsetFrames+i]??zeroBands),
+    beatStrength: Array.from({length:count},(_,i)=>analysis.beatStrength?.[offsetFrames+i]??0)
   };
 }
