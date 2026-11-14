@@ -158,7 +158,12 @@ def main():
                     assert page.locator(".player-with-guide").bounding_box()["width"]>=500
                     page.locator("button.settings-tab").nth(1).click()
                     assert page.locator("#settings-style").is_visible()
-                    page.locator('div.length-options button').first.click()
+                    assert page.locator(".timeline-panel").is_visible()
+                    assert page.locator(".timeline-panel .clip-waveform").is_visible()
+                    assert page.locator(".settings-sidebar .length-options").count()==0
+                    page.locator('.timeline-panel .length-options button').first.click()
+                    assert page.locator("#settings-style").is_visible(), (
+                        'Video duration must be available without switching tabs')
                     page.locator("button.settings-tab").first.click()
                     assert page.locator('.clip-waveform').get_attribute('data-waveform-source')=='demo'
                     # Verify that user-provided blob audio and artwork are supported
