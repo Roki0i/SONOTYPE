@@ -273,6 +273,42 @@ def main():
                     page.locator('input[aria-label="音楽ファイルを選択"]').set_input_files(
                         {"name":"seek.wav","mimeType":"audio/wav","buffer":seek_wav()})
                     page.get_by_role("status").filter(has_text="音声を解析しました").wait_for(timeout=60000)
+                    # Rejected audio must report the reason adjacent to its picker
+                    # and preserve the previously loaded source and its waveform.
+                    audio_picker=page.locator('input[aria-label="音楽ファイルを選択"]')
+                    loaded_name=page.locator(".upload-name").first.inner_text()
+                    loaded_title=page.locator("#song-title").input_value()
+                    assert loaded_name=="seek.wav"
+                    audio_picker.set_input_files(
+                        {"name":"invalid.txt","mimeType":"text/plain","buffer":b"not audio"})
+                    assert "この音声形式は利用できません" in page.get_by_role("alert").inner_text()
+                    assert audio_picker.get_attribute("aria-invalid")=="true"
+                    assert page.locator(".upload-name").first.inner_text()==loaded_name
+                    audio_picker.set_input_files(
+                        {"name":"broken.wav","mimeType":"audio/wav","buffer":b"not a RIFF WAVE"})
+                    assert "音声を読み込めませんでした" in page.get_by_role("alert").inner_text()
+                    assert page.locator(".upload-name").first.inner_text()==loaded_name
+                    page.evaluate("""() => {
+                        const input=document.querySelector('input[aria-label="音楽ファイルを選択"]');
+                        const file=new File([new Uint8Array(25*1024*1024+1)],
+                                            'too-large.wav',{type:'audio/wav'});
+                        const transfer=new DataTransfer();
+                        transfer.items.add(file);
+                        input.files=transfer.files;
+                        input.dispatchEvent(new Event('change',{bubbles:true}));
+                    }""")
+                    assert "25MiBを超えています" in page.get_by_role("alert").inner_text()
+                    assert page.locator(".upload-name").first.inner_text()==loaded_name
+                    assert page.locator("#song-title").input_value()==loaded_title
+                    assert page.locator(".clip-waveform").get_attribute(
+                        "data-waveform-source")=="uploaded"
+                    # A valid replacement clears inline errors.
+                    audio_picker.set_input_files(
+                        {"name":"seek.wav","mimeType":"audio/wav","buffer":seek_wav()})
+                    page.get_by_role("status").filter(
+                        has_text="音声を解析しました").wait_for(timeout=60000)
+                    assert page.get_by_role("alert").count()==0
+                    assert audio_picker.get_attribute("aria-invalid")=="false"
                     slider=page.locator("#clip-start")
                     assert slider.get_attribute("max")=="240"
                     waveform=page.locator(".clip-waveform")
