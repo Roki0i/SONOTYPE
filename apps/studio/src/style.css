@@ -590,6 +590,26 @@ button:focus-visible,input:focus-visible {
   font-size:11px;
   color:#4d5048
 }
+.upload-input input[aria-invalid="true"] {
+  outline:2px solid #9c4033;
+  outline-offset:2px;
+}
+.audio-upload-hint {
+  margin:-3px 0 11px;
+  font-size:10px;
+  line-height:1.5;
+  color:#676a60;
+}
+.audio-upload-error {
+  margin:-2px 0 10px;
+  padding:9px 10px;
+  border-left:3px solid #a84e42;
+  background:#f7e7df;
+  color:#722b23;
+  font-size:11px;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
 .field-label {
   display:block;
   margin:0 0 8px;

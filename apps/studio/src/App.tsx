@@ -56,6 +56,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
   const [artist,setArtist]=useState('Your artist');
   const [coverSrc,setCoverSrc]=useState('');
   const [status,setStatus]=useState('デモ音源を使用中。テンプレートと文字を編集できます。');
+  const [audioUploadError,setAudioUploadError]=useState<string|null>(null);
   const [loading,setLoading]=useState(false);
   const [exporting,setExporting]=useState(false);
   const [webMp4Status,setWebMp4Status]=useState<{
@@ -136,8 +137,18 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
 
   async function setAudio(file?:File){
     if(!file)return;
-    if(file.size>25*1024*1024||!/\.(wav|mp3|m4a|aac|ogg)$/i.test(file.name)){
-      setStatus('音声はWAV / MP3 / M4A / AAC / OGG、25MiB以内にしてください');return;
+    setAudioUploadError(null);
+    const reject=(message:string)=>{
+      setAudioUploadError(message);
+      setStatus(message);
+    };
+    if(!/\.(wav|mp3|m4a|aac|ogg)$/i.test(file.name)){
+      reject('この音声形式は利用できません。WAV / MP3 / M4A / AAC / OGGを選んでください。');
+      return;
+    }
+    if(file.size>25*1024*1024){
+      reject('音声ファイルが25MiBを超えています（'+(file.size/1048576).toFixed(1)+'MiB）。');
+      return;
     }
     setLoading(true);
     try{
@@ -155,8 +166,9 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
       setTitle(file.name.replace(/\.[^.]+$/,'').replace(/[\x00-\x1f]/g,' ').slice(0,64));
       setNotes([]);
       setStatus('音声を解析しました。MIDIを入れると音程も表示できます。');
-    }catch(e){setStatus(e instanceof Error?e.message:'音声解析エラー');}
-    finally{setLoading(false);}
+    }catch{
+      reject('音声を読み込めませんでした。ファイルの破損または非対応の音声形式が考えられます。');
+    }finally{setLoading(false);}
   }
   function setCover(file?:File){
     if(!file)return;
@@ -179,6 +191,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
     }catch(e){setStatus(e instanceof Error?e.message:'MIDI解析エラー');}
   }
   function resetDemo(){
+    setAudioUploadError(null);
     if(uploaded.current)URL.revokeObjectURL(uploaded.current);
     if(coverUrl.current)URL.revokeObjectURL(coverUrl.current);
     uploaded.current=null;coverUrl.current=null;audioFile.current=null;coverFile.current=null;
@@ -254,6 +267,7 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
       setSeconds(saved.settings.seconds);
       setPlatform(saved.settings.platform);
       setStartFrame(saved.settings.startFrame);
+      setAudioUploadError(null);
       setStatus('音源・画像・編集内容を復元しました。');
     }catch(error){
       setStatus(error instanceof Error?'復元に失敗しました: '+error.message:'復元に失敗しました');
@@ -434,8 +448,16 @@ export function App({initialTemplateId}:{initialTemplateId?:TemplateId}={}){
           <span>音楽ファイル</span><span className="upload-name">{audioFile.current?.name??'デモ音源'}</span>
           <input aria-label="音楽ファイルを選択" disabled={loading||exporting} type="file"
             accept=".wav,.mp3,.m4a,.aac,.ogg,audio/*"
+            aria-invalid={audioUploadError!==null}
+            aria-describedby={audioUploadError?'audio-upload-error':'audio-upload-hint'}
             onChange={e=>{void setAudio(e.target.files?.[0]);e.target.value='';}}/>
         </label>
+        {audioUploadError?<p id="audio-upload-error" className="audio-upload-error" role="alert">
+          {audioUploadError} 現在の音源は変更されていません。
+        </p>:null}
+        <p id="audio-upload-hint" className="audio-upload-hint">
+          WAV / MP3 / M4A / AAC / OGG・25MiB以内。対応外のファイルは選択画面で非表示になる場合があります。
+        </p>
         <label className="upload-input">
           <span>ジャケット画像 <em>任意</em></span>
           <span className="upload-name">{coverFile.current?.name??'未設定（既定のアートを使用）'}</span>
