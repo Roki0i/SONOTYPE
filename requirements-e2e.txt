@@ -1,2 +1,2 @@
 # CI browser-testing dependency, update by reviewed Dependabot PRs
-playwright==1.65.1
+playwright==1.65.2
