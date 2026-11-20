@@ -18,13 +18,13 @@
   "dependencies": {
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "remotion": "4.0.543",
-    "@remotion/player": "4.0.543",
-    "@remotion/media": "4.0.543",
-    "@remotion/web-renderer": "4.0.543"
+    "remotion": "4.0.544",
+    "@remotion/player": "4.0.544",
+    "@remotion/media": "4.0.544",
+    "@remotion/web-renderer": "4.0.544"
   },
   "devDependencies": {
-    "@remotion/cli": "4.0.543",
+    "@remotion/cli": "4.0.544",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",
